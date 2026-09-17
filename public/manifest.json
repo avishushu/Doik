@@ -1,0 +1,11 @@
+{
+  "name": "שם המכון - מכון יופי יוקרתי",
+  "short_name": "המכון",
+  "description": "ציפורניים, איפור ותסרוקות",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF7F2",
+  "theme_color": "#B8946A",
+  "lang": "he",
+  "dir": "rtl"
+}
