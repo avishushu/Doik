@@ -6,10 +6,10 @@ type ServiceCardProps = {
 
 export default function ServiceCard({ title, description, price }: ServiceCardProps) {
   return (
-    <div className="rounded-2xl border border-gold-light bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-      <h3 className="text-lg font-semibold text-gold-dark mb-2">{title}</h3>
-      <p className="text-sm text-charcoal/80 leading-relaxed">{description}</p>
-      {price && <p className="mt-4 text-sm font-medium text-charcoal">{price}</p>}
+    <div className="py-8 grid md:grid-cols-12 gap-3 md:gap-6 items-baseline">
+      <h3 className="md:col-span-5 font-serif text-xl text-ink">{title}</h3>
+      <p className="md:col-span-5 text-sm text-ink/70 leading-relaxed">{description}</p>
+      {price && <p className="md:col-span-2 md:text-left text-sm text-ink/50">{price}</p>}
     </div>
   );
 }

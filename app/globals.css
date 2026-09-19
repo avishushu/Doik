@@ -2,17 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background-color: #FBF7F2;
-  color: #2B2622;
+  background-color: #050505;
+}
+
+@layer base {
+  h1, h2, h3 {
+    @apply font-serif;
+  }
 }
 
 .section-container {
   max-width: 1120px;
   margin-inline: auto;
   padding-inline: 1.5rem;
+}
+
+.app-shell {
+  max-width: 480px;
+  margin-inline: auto;
+  position: relative;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.hero-mask {
+  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
 }

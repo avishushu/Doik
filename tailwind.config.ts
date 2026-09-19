@@ -4,15 +4,41 @@ const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        gold: { DEFAULT: "#B8946A", light: "#D9C2A0", dark: "#8C6B47" },
-        cream: "#FBF7F2",
-        charcoal: "#2B2622",
+        ink: "#211815",
+        blush: "#F5ECE6",
+        wine: "#6E2439",
+        rose: "#D9A9AE",
+        goldline: "#A9855B",
+        brand: {
+          dark: "#050505",
+          rose: "#be185d",
+          pink: "#fce7f3",
+        },
       },
-      fontFamily: { heebo: ["var(--font-heebo)"] },
+      fontFamily: {
+        sans: ["var(--font-body)", "sans-serif"],
+        serif: ["var(--font-display)", "serif"],
+        latin: ["var(--font-latin)", "serif"],
+      },
+      keyframes: {
+        blob: {
+          "0%": { transform: "translate(0px, 0px) scale(1)" },
+          "100%": { transform: "translate(20px, -30px) scale(1.1)" },
+        },
+        fadeInUp: {
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        blob: "blob 10s infinite alternate",
+        "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+      },
     },
   },
   plugins: [],

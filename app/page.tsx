@@ -1,32 +1,41 @@
-import Link from "next/link";
-import ServiceCard from "@/components/ServiceCard";
-
-const highlightServices = [
-  { title: "בניית ציפורניים וג'ל", description: "בנייה, לק ג'ל, עיצוב וטיפוח ציפורניים ברמה גבוהה." },
-  { title: "איפור מקצועי", description: "איפור יומיומי, ערב וכלות בשימוש בקוסמטיקה איכותית." },
-  { title: "תסרוקות", description: "תסרוקות לאירועים, ערב וכלות, בהתאמה אישית." },
-];
+import ParallaxHero from "@/components/ParallaxHero";
+import ServiceCarousel from "@/components/ServiceCarousel";
 
 export default function HomePage() {
   return (
-    <>
-      <section className="section-container py-20 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-charcoal mb-6">מכון יופי יוקרתי</h1>
-        <p className="text-lg text-charcoal/70 max-w-2xl mx-auto mb-8">
-          ציפורניים, איפור ותסרוקות ברמה הגבוהה ביותר — במקום אחד.
-        </p>
-        <Link href="/booking" className="inline-block bg-gold hover:bg-gold-dark text-white px-8 py-3 rounded-full text-sm font-medium transition-colors">
-          קביעת תור עכשיו
-        </Link>
-      </section>
-      <section className="section-container py-16">
-        <h2 className="text-2xl font-bold text-center mb-10">השירותים שלנו</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {highlightServices.map((service) => (
-            <ServiceCard key={service.title} {...service} />
-          ))}
+    <div className="app-shell relative">
+      <ParallaxHero />
+      <div className="px-6 -mt-10 relative z-20">
+        <div className="space-y-3 mb-8">
+          <div className="bg-gradient-to-r from-pink-950/40 to-purple-950/40 border border-brand-rose/20 rounded-2xl p-4 flex justify-between items-center backdrop-blur-md">
+            <div>
+              <span className="text-xs text-pink-300 font-bold uppercase tracking-wider">התור הקרוב שלך</span>
+              <h4 className="font-bold text-white text-sm">מניקור ולק ג'ל</h4>
+            </div>
+            <div className="text-left tabular-nums">
+              <span className="text-sm font-bold text-white block">מחר, 10:00</span>
+              <span className="text-xs text-gray-400">בעוד 22 שעות</span>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-3 bg-red-950/40 border border-red-500/30 rounded-full px-4 py-2 backdrop-blur-md w-full">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+            </span>
+            <span className="text-sm font-semibold text-red-100 tracking-wide tabular-nums">עדכון חי: נותר תור 1 בלבד להיום!</span>
+          </div>
         </div>
-      </section>
-    </>
+
+        <div className="flex justify-between items-end mb-6">
+          <div>
+            <h2 className="text-2xl font-serif font-bold text-white">השירותים שלנו</h2>
+            <p className="text-xs text-gray-400">החליקי לצפייה במגוון הטיפולים</p>
+          </div>
+        </div>
+
+        <ServiceCarousel />
+      </div>
+    </div>
   );
 }
