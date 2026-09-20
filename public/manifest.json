@@ -1,7 +1,7 @@
 {
-  "name": "שם המכון - מכון יופי יוקרתי",
-  "short_name": "המכון",
-  "description": "ציפורניים, איפור ותסרוקות",
+  "name": "הודיה Beauty",
+  "short_name": "יופי וטיפול",
+  "description": "ציפורניים איפור ותסרוקות",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F5ECE6",
