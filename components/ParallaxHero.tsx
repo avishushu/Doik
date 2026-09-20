@@ -35,8 +35,8 @@ export default function ParallaxHero() {
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/30 to-transparent" />
-      <div className="absolute bottom-16 right-6 left-6 z-10 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-        <div dir="ltr" className="flex items-baseline gap-2">
+      <div className="absolute bottom-16 right-6 left-6 z-10 flex flex-col items-end opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+        <div dir="ltr" className="flex items-baseline gap-2 justify-end w-full">
           <span className="font-latin italic font-bold text-5xl tracking-wide text-white">Hodaya</span>
         </div>
         <span className="block mt-1 text-sm font-sans font-bold tracking-[0.35em] text-brand-rose uppercase">
