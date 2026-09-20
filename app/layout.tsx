@@ -29,8 +29,8 @@ const body = Assistant({
 });
 
 export const metadata: Metadata = {
-  title: "שם המכון | מכון יופי יוקרתי",
-  description: "מכון יופי יוקרתי המתמחה בבניית ציפורניים וג'ל, איפור מקצועי ותסרוקות.",
+  title: "Hodaya Beauty | מכון יופי יוקרתי",
+  description: "Hodaya Beauty — בניית ציפורניים וג'ל, איפור מקצועי ותסרוקות ברמה גבוהה.",
   manifest: "/manifest.json",
 };
 
@@ -38,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="he" dir="rtl" className={`${display.variable} ${latin.variable} ${body.variable}`}>
       <body className="font-sans antialiased bg-brand-dark text-white relative overflow-x-hidden">
+        <div id="scroll-sentinel" className="absolute top-10 inset-x-0 h-px pointer-events-none" />
         <div className="fixed inset-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
           <div className="absolute top-[10%] right-[-10%] w-[250px] h-[250px] bg-pink-700/20 rounded-full mix-blend-screen blur-[80px] animate-blob" />
           <div className="absolute bottom-[20%] left-[-10%] w-[250px] h-[250px] bg-purple-700/20 rounded-full mix-blend-screen blur-[80px]" style={{ animationDelay: "2s" }} />

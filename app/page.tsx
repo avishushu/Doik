@@ -1,5 +1,7 @@
 import ParallaxHero from "@/components/ParallaxHero";
 import ServiceCarousel from "@/components/ServiceCarousel";
+import GalleryPreview from "@/components/GalleryPreview";
+import Footer from "@/components/Footer";
 
 export default function HomePage() {
   return (
@@ -35,6 +37,8 @@ export default function HomePage() {
         </div>
 
         <ServiceCarousel />
+        <GalleryPreview />
+        <Footer />
       </div>
     </div>
   );

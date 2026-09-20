@@ -29,20 +29,19 @@ export default function ParallaxHero() {
     <header className="relative h-[65vh] w-full hero-mask overflow-hidden">
       <div ref={mediaRef} className="absolute inset-0 w-full h-[140%] -top-[20%]" style={{ willChange: "transform" }}>
         <img
-          src="https://images.unsplash.com/photo-1457972729786-0411a3b2b626?auto=format&fit=crop&q=80&w=1200"
-          alt="המכון שלנו"
+          src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0"
+          alt="הודיה ביוטי"
           className="w-full h-full object-cover opacity-85"
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/30 to-transparent" />
-      <div className="absolute bottom-16 right-6 left-6 z-10">
-        <h1 className="font-serif text-5xl font-bold mb-3 text-white opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          יופי<br />
-          <span className="text-brand-rose italic font-light">שיש לו זמן אליך</span>
-        </h1>
-        <p className="text-gray-300 font-light tracking-wide text-lg opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-          אמנות, טיפוח ויוקרה.
-        </p>
+      <div className="absolute bottom-16 right-6 left-6 z-10 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+        <div dir="ltr" className="flex items-baseline gap-2">
+          <span className="font-latin italic font-bold text-5xl tracking-wide text-white">Hodaya</span>
+        </div>
+        <span className="block mt-1 text-sm font-sans font-bold tracking-[0.35em] text-brand-rose uppercase">
+          Beauty
+        </span>
       </div>
     </header>
   );

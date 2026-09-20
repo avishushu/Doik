@@ -17,11 +17,25 @@ export default function Header() {
   const { open } = useBookingSheet();
 
   useEffect(() => {
+    const sentinel = document.getElementById("scroll-sentinel");
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setScrolled(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "0px" }
+    );
+    observer.observe(sentinel);
+
+    // גיבוי: בדיקה ישירה בכל גלילה, למקרה שה-observer מפספס בגלילה מהירה מאוד
     function onScroll() {
       setScrolled(window.scrollY > 40);
     }
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   return (
@@ -39,7 +53,10 @@ export default function Header() {
               : ""
           }`}
         >
-          <span className="font-latin italic font-bold text-xl tracking-wider text-white">Studio.</span>
+          <div dir="ltr" className="flex items-baseline gap-1.5">
+            <span className="font-latin italic font-bold text-xl tracking-wide text-white">Hodaya</span>
+            <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-brand-rose uppercase">Beauty</span>
+          </div>
           <button
             onClick={() => setMenuOpen(true)}
             className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white"

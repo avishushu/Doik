@@ -8,9 +8,9 @@ export type ServiceItem = {
   featured?: boolean;
 };
 
-const nailsImg = "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?auto=format&fit=crop&q=80&w=600";
+const nailsImg = "https://images.unsplash.com/photo-1599206676335-193c82b13c9e?q=80&w=707&auto=format&fit=crop&ixlib=rb-4.1.0";
 const makeupImg = "https://images.unsplash.com/photo-1500840216050-6ffa99d75160?auto=format&fit=crop&q=80&w=600";
-const hairImg = "https://images.unsplash.com/photo-1602549179763-ce6c9df961b7?auto=format&fit=crop&q=80&w=600";
+const hairImg = "https://images.unsplash.com/photo-1575287537815-ef82dd922198?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0";
 
 export const services: ServiceItem[] = [
   { title: "בניית ציפורניים", price: "₪220", duration: "75 דק׳", emoji: "💅", image: nailsImg },
