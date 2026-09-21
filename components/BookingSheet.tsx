@@ -3,7 +3,8 @@
 import { useState } from "react";
 import confetti from "canvas-confetti";
 import { collection, addDoc, serverTimestamp, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { signInAnonymously } from "firebase/auth";
+import { db, auth } from "@/lib/firebase";
 import { useBookingSheet } from "@/lib/booking-sheet-context";
 
 const timeSlots = ["14:00", "16:30", "18:00"];
@@ -28,6 +29,10 @@ export default function BookingSheet() {
     setStatus("loading");
 
     try {
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+
       const purgeDate = new Date(date);
       purgeDate.setDate(purgeDate.getDate() + 180);
 
