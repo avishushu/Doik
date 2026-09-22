@@ -3,7 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
-import { collection, addDoc, serverTimestamp, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  query,
+  where,
+  getDocs,
+  runTransaction,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
 import { signInAnonymously } from "firebase/auth";
 import { db, auth } from "@/lib/firebase";
 import { useBookingSheet } from "@/lib/booking-sheet-context";
@@ -24,6 +33,8 @@ export default function BookingSheet() {
   const [phone, setPhone] = useState("");
   const [date, setDate] = useState("");
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [takenTimes, setTakenTimes] = useState<string[]>([]);
+  const [checkingSlots, setCheckingSlots] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [showSavePrompt, setShowSavePrompt] = useState(false);
@@ -90,8 +101,32 @@ export default function BookingSheet() {
       setName("");
       setPhone("");
       setDate("");
+      setTakenTimes([]);
     }
   }, [isOpen]);
+
+  // כל פעם שהתאריך משתנה, בודקים אילו שעות כבר תפוסות באותו יום
+  useEffect(() => {
+    if (!date) {
+      setTakenTimes([]);
+      return;
+    }
+    let cancelled = false;
+    setCheckingSlots(true);
+    const q = query(collection(db, "doik/app/bookedSlots"), where("date", "==", date));
+    getDocs(q)
+      .then((snap) => {
+        if (cancelled) return;
+        setTakenTimes(snap.docs.map((d) => d.data().time as string));
+      })
+      .catch((err) => console.error("failed to check slot availability", err))
+      .finally(() => {
+        if (!cancelled) setCheckingSlots(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [date]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -112,18 +147,35 @@ export default function BookingSheet() {
       }
       const uid = auth.currentUser!.uid;
 
+      const slotId = `${date}_${selectedTime}`;
+      const slotRef = doc(db, "doik/app/bookedSlots", slotId);
+      const bookingRef = doc(collection(db, "doik/app/bookings"));
+
       const purgeDate = new Date(date);
       purgeDate.setDate(purgeDate.getDate() + 180);
 
-      await addDoc(collection(db, "doik/app/bookings"), {
-        treatment: service?.title ?? "בקשה כללית לתור",
-        date,
-        time: selectedTime,
-        name: finalName,
-        phone: finalPhone,
-        createdAt: serverTimestamp(),
-        purgeAfter: Timestamp.fromDate(purgeDate),
-        createdBy: uid,
+      // טרנזקציה: קוראים את מצב השעה ברגע האמת, ואם היא עדיין פנויה -
+      // כותבים את ההזמנה ואת סימון-התפוסה יחד, כפעולה אחת בלתי ניתנת לחלוקה
+      await runTransaction(db, async (tx) => {
+        const slotSnap = await tx.get(slotRef);
+        if (slotSnap.exists()) {
+          throw new Error("SLOT_TAKEN");
+        }
+        tx.set(slotRef, {
+          date,
+          time: selectedTime,
+          createdAt: serverTimestamp(),
+        });
+        tx.set(bookingRef, {
+          treatment: service?.title ?? "בקשה כללית לתור",
+          date,
+          time: selectedTime,
+          name: finalName,
+          phone: finalPhone,
+          createdAt: serverTimestamp(),
+          purgeAfter: Timestamp.fromDate(purgeDate),
+          createdBy: uid,
+        });
       });
 
       confetti({
@@ -139,10 +191,17 @@ export default function BookingSheet() {
       } else {
         setTimeout(() => close(), 1500);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setStatus("error");
-      setErrorMsg("משהו השתבש, נסי שוב או צרי קשר בוואטסאפ");
+      if (err?.message === "SLOT_TAKEN") {
+        setStatus("error");
+        setErrorMsg("אופס, השעה הזו נתפסה ממש עכשיו - נא לבחור שעה אחרת");
+        setSelectedTime(null);
+        setTakenTimes((prev) => [...prev, selectedTime!]);
+      } else {
+        setStatus("error");
+        setErrorMsg("משהו השתבש, נסי שוב או צרי קשר בוואטסאפ");
+      }
     }
   }
 
@@ -260,28 +319,39 @@ export default function BookingSheet() {
                     type="date"
                     required
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(e) => {
+                      setDate(e.target.value);
+                      setSelectedTime(null);
+                    }}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-brand-rose tabular-nums"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-400 mb-1 block">שעות זמינות להיום</label>
+                  <label className="text-xs text-gray-400 mb-1 block">
+                    שעות זמינות {checkingSlots && "(בודקת זמינות...)"}
+                  </label>
                   <div className="grid grid-cols-3 gap-2 tabular-nums">
-                    {timeSlots.map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setSelectedTime(t)}
-                        className={`rounded-xl py-3 text-sm font-semibold border transition-all active:scale-95 ${
-                          selectedTime === t
-                            ? "border-brand-rose bg-brand-rose/30"
-                            : "border-white/10 bg-white/5 hover:bg-brand-rose/20"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
+                    {timeSlots.map((t) => {
+                      const taken = takenTimes.includes(t);
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          disabled={taken}
+                          onClick={() => setSelectedTime(t)}
+                          className={`rounded-xl py-3 text-sm font-semibold border transition-all active:scale-95 ${
+                            taken
+                              ? "border-white/5 bg-white/[0.02] text-gray-600 line-through cursor-not-allowed"
+                              : selectedTime === t
+                              ? "border-brand-rose bg-brand-rose/30"
+                              : "border-white/10 bg-white/5 hover:bg-brand-rose/20"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

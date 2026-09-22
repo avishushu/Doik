@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuthContext } from "@/lib/auth-context";
@@ -54,7 +55,12 @@ export default function AdminPage() {
 
   return (
     <div className="app-shell px-6" style={{ paddingTop: "calc(96px + var(--sat))" }}>
-      <h1 className="font-serif text-3xl font-bold text-white mb-2">הזמנות קרובות</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="font-serif text-3xl font-bold text-white">הזמנות קרובות</h1>
+        <Link href="/account" className="text-sm text-brand-rose font-semibold">
+          החשבון שלי ←
+        </Link>
+      </div>
       <p className="text-sm text-gray-400 mb-8">מהיום והלאה, עד 50 הזמנות</p>
 
       {fetching && <p className="text-gray-400 text-sm">טוען הזמנות...</p>}

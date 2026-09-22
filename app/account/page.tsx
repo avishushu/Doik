@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -13,8 +13,7 @@ import { useAuthContext } from "@/lib/auth-context";
 import { IconUser, IconPhone, IconMail, IconLock, IconSparkle, IconHeart } from "@/components/icons";
 
 export default function AccountPage() {
-  const { user, userData, loading } = useAuthContext();
-  const router = useRouter();
+  const { user, userData } = useAuthContext();
   const [mode, setMode] = useState<"login" | "register">("register");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,12 +30,7 @@ export default function AccountPage() {
   const [editError, setEditError] = useState("");
 
   const isLoggedIn = user && !user.isAnonymous;
-
-  useEffect(() => {
-    if (!loading && userData?.role === "admin") {
-      router.replace("/admin");
-    }
-  }, [loading, userData, router]);
+  const isAdmin = userData?.role === "admin";
 
   useEffect(() => {
     if (userData) {
@@ -130,6 +124,16 @@ export default function AccountPage() {
     return (
       <div className="app-shell px-6" style={{ paddingTop: "calc(96px + var(--sat))" }}>
         <h1 className="font-serif text-3xl font-bold text-white mb-6">החשבון שלי</h1>
+
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center justify-between bg-brand-rose/15 border border-brand-rose/30 rounded-2xl p-4 mb-4 hover:bg-brand-rose/20 transition-colors"
+          >
+            <span className="text-sm font-bold text-white">לוח הניהול שלך</span>
+            <span className="text-brand-rose text-sm">לצפייה בהזמנות ←</span>
+          </Link>
+        )}
 
         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-4">
           {!editing ? (

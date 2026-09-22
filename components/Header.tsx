@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useBookingSheet } from "@/lib/booking-sheet-context";
+import { useAuthContext } from "@/lib/auth-context";
 
-const navItems = [
+const baseNavItems = [
   { href: "/", label: "בית" },
   { href: "/services", label: "כל הטיפולים" },
   { href: "/gallery", label: "גלריה" },
@@ -16,6 +17,12 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { open } = useBookingSheet();
+  const { userData } = useAuthContext();
+
+  const navItems =
+    userData?.role === "admin"
+      ? [...baseNavItems, { href: "/admin", label: "ניהול" }]
+      : baseNavItems;
 
   useEffect(() => {
     const sentinel = document.getElementById("scroll-sentinel");
