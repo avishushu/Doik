@@ -8,6 +8,7 @@ import { signInAnonymously } from "firebase/auth";
 import { db, auth } from "@/lib/firebase";
 import { useBookingSheet } from "@/lib/booking-sheet-context";
 import { useAuthContext } from "@/lib/auth-context";
+import { IconUser, IconHeart } from "@/components/icons";
 
 const timeSlots = ["14:00", "16:30", "18:00"];
 const DRAG_CLOSE_THRESHOLD = 110;
@@ -109,6 +110,7 @@ export default function BookingSheet() {
       if (!auth.currentUser) {
         await signInAnonymously(auth);
       }
+      const uid = auth.currentUser!.uid;
 
       const purgeDate = new Date(date);
       purgeDate.setDate(purgeDate.getDate() + 180);
@@ -121,6 +123,7 @@ export default function BookingSheet() {
         phone: finalPhone,
         createdAt: serverTimestamp(),
         purgeAfter: Timestamp.fromDate(purgeDate),
+        createdBy: uid,
       });
 
       confetti({
@@ -178,12 +181,12 @@ export default function BookingSheet() {
         <div ref={contentRef} className="px-6 max-h-[75vh] overflow-y-auto">
           {showSavePrompt ? (
             <div className="py-6 text-center">
-              <div className="w-14 h-14 rounded-full bg-brand-rose/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">💌</span>
+              <div className="w-14 h-14 rounded-full bg-brand-rose/20 flex items-center justify-center mx-auto mb-4 text-brand-rose">
+                <IconHeart className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-serif font-bold text-white mb-2">לשמור את הפרטים שלך?</h3>
               <p className="text-sm text-gray-400 mb-6">
-                כך נזכור אותך בפעם הבאה ונוכל לעדכן אותך על תורים ומבצעים - לוקח רק חצי דקה.
+                כך נזכיר לך על התור ותוכלי לראות אותו כאן בכל רגע - לוקח רק חצי דקה.
               </p>
               <div className="flex flex-col gap-3">
                 <button
@@ -217,8 +220,8 @@ export default function BookingSheet() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {isLoggedIn ? (
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-brand-rose/20 flex items-center justify-center text-sm">
-                      👤
+                    <div className="w-9 h-9 rounded-full bg-brand-rose/20 flex items-center justify-center text-brand-rose">
+                      <IconUser className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="text-sm text-white font-semibold">{userData?.name}</p>
