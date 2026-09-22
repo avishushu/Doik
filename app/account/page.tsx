@@ -7,7 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuthContext } from "@/lib/auth-context";
 import { IconUser, IconPhone, IconMail, IconLock, IconSparkle, IconHeart } from "@/components/icons";
@@ -24,6 +24,12 @@ export default function AccountPage() {
   const [submitting, setSubmitting] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
 
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
+
   const isLoggedIn = user && !user.isAnonymous;
 
   useEffect(() => {
@@ -31,6 +37,13 @@ export default function AccountPage() {
       router.replace("/admin");
     }
   }, [loading, userData, router]);
+
+  useEffect(() => {
+    if (userData) {
+      setEditName(userData.name || "");
+      setEditPhone(userData.phone || "");
+    }
+  }, [userData]);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("doik_prefill");
@@ -77,6 +90,25 @@ export default function AccountPage() {
     }
   }
 
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user) return;
+    setEditError("");
+    setSavingEdit(true);
+    try {
+      await updateDoc(doc(db, "doik/app/users", user.uid), {
+        name: editName.trim(),
+        phone: editPhone.trim(),
+      });
+      setEditing(false);
+    } catch (err) {
+      console.error(err);
+      setEditError("לא הצלחנו לשמור, נסי שוב");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   function translateError(code?: string) {
     switch (code) {
       case "auth/email-already-in-use":
@@ -98,19 +130,97 @@ export default function AccountPage() {
     return (
       <div className="app-shell px-6" style={{ paddingTop: "calc(96px + var(--sat))" }}>
         <h1 className="font-serif text-3xl font-bold text-white mb-6">החשבון שלי</h1>
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-brand-rose/20 flex items-center justify-center text-brand-rose">
-            <IconUser className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-white font-bold">{userData?.name || user.email}</p>
-            <p className="text-sm text-gray-400">{user.email}</p>
-            {userData?.phone && <p className="text-sm text-gray-400 mt-0.5" dir="ltr">{userData.phone}</p>}
-          </div>
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-4">
+          {!editing ? (
+            <>
+              <div className="flex items-center gap-4 mb-5">
+                <div className="w-12 h-12 rounded-full bg-brand-rose/20 flex items-center justify-center text-brand-rose flex-shrink-0">
+                  <IconUser className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white font-bold truncate">{userData?.name || "—"}</p>
+                  <p className="text-sm text-gray-400 truncate">{user.email}</p>
+                  {userData?.phone && <p className="text-sm text-gray-400 mt-0.5" dir="ltr">{userData.phone}</p>}
+                </div>
+              </div>
+              <button
+                onClick={() => setEditing(true)}
+                className="w-full border border-white/15 text-white rounded-full py-2.5 text-sm font-semibold hover:bg-white/5 transition-colors"
+              >
+                עריכת פרטים
+              </button>
+            </>
+          ) : (
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="relative">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+                  <IconUser className="w-5 h-5" />
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white focus:outline-none focus:border-brand-rose"
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+                  <IconPhone className="w-5 h-5" />
+                </span>
+                <input
+                  type="tel"
+                  required
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  dir="ltr"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white text-right focus:outline-none focus:border-brand-rose"
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">
+                  <IconMail className="w-5 h-5" />
+                </span>
+                <input
+                  type="email"
+                  disabled
+                  value={user.email || ""}
+                  dir="ltr"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-gray-500 text-right"
+                />
+              </div>
+
+              {editError && <p className="text-xs text-red-400">{editError}</p>}
+
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="flex-1 bg-gradient-to-r from-brand-rose to-pink-700 text-white rounded-full py-2.5 text-sm font-bold disabled:opacity-60"
+                >
+                  {savingEdit ? "שומר..." : "שמירה"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(false);
+                    setEditName(userData?.name || "");
+                    setEditPhone(userData?.phone || "");
+                    setEditError("");
+                  }}
+                  className="flex-1 border border-white/15 text-gray-300 rounded-full py-2.5 text-sm font-semibold"
+                >
+                  ביטול
+                </button>
+              </div>
+            </form>
+          )}
         </div>
+
         <button
           onClick={() => signOut(auth)}
-          className="w-full border border-white/15 text-white rounded-full py-3 text-sm font-semibold hover:bg-white/5 transition-colors"
+          className="w-full bg-white/5 border border-red-500/30 text-red-300 rounded-full py-3.5 text-sm font-bold hover:bg-red-950/30 transition-colors"
         >
           התנתקות
         </button>
