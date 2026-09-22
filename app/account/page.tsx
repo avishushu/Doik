@@ -21,6 +21,7 @@ export default function AccountPage() {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
 
   const isLoggedIn = user && !user.isAnonymous;
 
@@ -29,6 +30,19 @@ export default function AccountPage() {
       router.replace("/admin");
     }
   }, [loading, userData, router]);
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("doik_prefill");
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        if (data.name) setName(data.name);
+        if (data.phone) setPhone(data.phone);
+        setPrefilled(true);
+      } catch {}
+      sessionStorage.removeItem("doik_prefill");
+    }
+  }, []);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -83,10 +97,15 @@ export default function AccountPage() {
     return (
       <div className="app-shell px-6" style={{ paddingTop: "calc(96px + var(--sat))" }}>
         <h1 className="font-serif text-3xl font-bold text-white mb-6">החשבון שלי</h1>
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
-          <p className="text-white font-bold mb-1">{userData?.name || user.email}</p>
-          <p className="text-sm text-gray-400">{user.email}</p>
-          {userData?.phone && <p className="text-sm text-gray-400 mt-1" dir="ltr">{userData.phone}</p>}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-brand-rose/20 flex items-center justify-center text-xl">
+            👤
+          </div>
+          <div>
+            <p className="text-white font-bold">{userData?.name || user.email}</p>
+            <p className="text-sm text-gray-400">{user.email}</p>
+            {userData?.phone && <p className="text-sm text-gray-400 mt-0.5" dir="ltr">{userData.phone}</p>}
+          </div>
         </div>
         <button
           onClick={() => signOut(auth)}
@@ -100,83 +119,113 @@ export default function AccountPage() {
 
   return (
     <div className="app-shell px-6" style={{ paddingTop: "calc(96px + var(--sat))" }}>
+      <div className="w-14 h-14 rounded-full bg-brand-rose/20 flex items-center justify-center mb-4 text-2xl">
+        {mode === "register" ? "✨" : "👋"}
+      </div>
       <h1 className="font-serif text-3xl font-bold text-white mb-2">
-        {mode === "register" ? "יצירת חשבון" : "התחברות"}
+        {mode === "register" ? "בואי נכיר" : "ברוכה השבה"}
       </h1>
-      <p className="text-sm text-gray-400 mb-8">
-        לא חובה כדי לקבוע תור - אבל עוזר לנו לזכור אותך בפעם הבאה.
+      <p className="text-sm text-gray-400 mb-6">
+        {prefilled
+          ? "מילאנו לך כבר את הפרטים מהתור שקבעת - רק תשלימי אימייל וסיסמה."
+          : "לא חובה כדי לקבוע תור - אבל עוזר לנו לזכור אותך בפעם הבאה."}
       </p>
+
+      <div className="flex bg-white/5 border border-white/10 rounded-full p-1 mb-6">
+        <button
+          type="button"
+          onClick={() => {
+            setMode("register");
+            setError("");
+          }}
+          className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors ${
+            mode === "register" ? "bg-gradient-to-r from-brand-rose to-pink-700 text-white" : "text-gray-400"
+          }`}
+        >
+          הרשמה
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("login");
+            setError("");
+          }}
+          className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors ${
+            mode === "login" ? "bg-gradient-to-r from-brand-rose to-pink-700 text-white" : "text-gray-400"
+          }`}
+        >
+          התחברות
+        </button>
+      </div>
 
       <form onSubmit={mode === "register" ? handleRegister : handleLogin} className="space-y-4">
         {mode === "register" && (
           <>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">שם מלא</label>
+            <div className="relative">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg">👤</span>
               <input
                 type="text"
                 required
+                placeholder="שם מלא"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-brand-rose"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white placeholder:text-gray-500 focus:outline-none focus:border-brand-rose"
               />
             </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">טלפון</label>
+            <div className="relative">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg">📱</span>
               <input
                 type="tel"
                 required
+                placeholder="טלפון"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 dir="ltr"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-brand-rose"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white text-right placeholder:text-gray-500 focus:outline-none focus:border-brand-rose"
               />
             </div>
           </>
         )}
-        <div>
-          <label className="text-xs text-gray-400 mb-1 block">אימייל</label>
+        <div className="relative">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg">✉️</span>
           <input
             type="email"
             required
+            placeholder="אימייל"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             dir="ltr"
-            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-brand-rose"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white text-right placeholder:text-gray-500 focus:outline-none focus:border-brand-rose"
           />
         </div>
-        <div>
-          <label className="text-xs text-gray-400 mb-1 block">סיסמה</label>
+        <div className="relative">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg">🔒</span>
           <input
             type="password"
             required
             minLength={6}
+            placeholder="סיסמה (לפחות 6 תווים)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             dir="ltr"
-            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-brand-rose"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white text-right placeholder:text-gray-500 focus:outline-none focus:border-brand-rose"
           />
         </div>
 
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && (
+          <div className="bg-red-950/40 border border-red-500/30 rounded-xl p-3">
+            <p className="text-xs text-red-300">{error}</p>
+          </div>
+        )}
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-gradient-to-r from-brand-rose to-pink-700 text-white rounded-2xl py-4 font-bold text-lg disabled:opacity-60"
+          className="w-full bg-gradient-to-r from-brand-rose to-pink-700 text-white rounded-2xl py-4 font-bold text-lg disabled:opacity-60 active:scale-95 transition-transform"
         >
           {submitting ? "רגע..." : mode === "register" ? "יצירת חשבון" : "התחברות"}
         </button>
       </form>
-
-      <button
-        onClick={() => {
-          setMode(mode === "register" ? "login" : "register");
-          setError("");
-        }}
-        className="mt-6 text-sm text-gray-400 underline"
-      >
-        {mode === "register" ? "כבר יש לך חשבון? התחברי" : "עדיין אין לך חשבון? הרשמי"}
-      </button>
     </div>
   );
 }
