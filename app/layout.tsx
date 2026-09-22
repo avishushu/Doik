@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import BookingSheet from "@/components/BookingSheet";
 import DebugConsole from "@/components/DebugConsole";
 import { BookingSheetProvider } from "@/lib/booking-sheet-context";
+import { AuthProvider } from "@/lib/auth-context";
 
 const display = Rubik({
   subsets: ["hebrew", "latin"],
@@ -44,12 +45,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="absolute top-[10%] right-[-10%] w-[250px] h-[250px] bg-pink-700/20 rounded-full mix-blend-screen blur-[80px] animate-blob" />
           <div className="absolute bottom-[20%] left-[-10%] w-[250px] h-[250px] bg-purple-700/20 rounded-full mix-blend-screen blur-[80px]" style={{ animationDelay: "2s" }} />
         </div>
-        <BookingSheetProvider>
-          <Header />
-          <main className="pb-24">{children}</main>
-          <BottomNav />
-          <BookingSheet />
-        </BookingSheetProvider>
+        <AuthProvider>
+          <BookingSheetProvider>
+            <Header />
+            <main className="pb-24">{children}</main>
+            <BottomNav />
+            <BookingSheet />
+          </BookingSheetProvider>
+        </AuthProvider>
         <DebugConsole />
       </body>
     </html>

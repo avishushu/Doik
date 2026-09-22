@@ -9,6 +9,7 @@ const navItems = [
   { href: "/services", label: "כל הטיפולים" },
   { href: "/gallery", label: "גלריה" },
   { href: "/about", label: "אודות" },
+  { href: "/account", label: "החשבון שלי" },
 ];
 
 export default function Header() {
@@ -19,14 +20,12 @@ export default function Header() {
   useEffect(() => {
     const sentinel = document.getElementById("scroll-sentinel");
     if (!sentinel) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => setScrolled(!entry.isIntersecting),
       { threshold: 0, rootMargin: "0px" }
     );
     observer.observe(sentinel);
 
-    // גיבוי: בדיקה ישירה בכל גלילה, למקרה שה-observer מפספס בגלילה מהירה מאוד
     function onScroll() {
       setScrolled(window.scrollY > 40);
     }
