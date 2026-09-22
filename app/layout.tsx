@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import BookingSheet from "@/components/BookingSheet";
+import DebugConsole from "@/components/DebugConsole";
 import { BookingSheetProvider } from "@/lib/booking-sheet-context";
 
 const display = Rubik({
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BottomNav />
           <BookingSheet />
         </BookingSheetProvider>
+        <DebugConsole />
       </body>
     </html>
   );
