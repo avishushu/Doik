@@ -12,11 +12,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-type AvailabilityDay = {
-  date: string;
-  startTime: string;
-  endTime: string;
-};
+type TimeWindow = { start: string; end: string };
+type AvailabilityDay = { date: string; windows: TimeWindow[] };
 
 function dateRange(start: string, end: string): string[] {
   const dates: string[] = [];
@@ -35,8 +32,7 @@ export default function AvailabilityPage() {
 
   const [rangeStart, setRangeStart] = useState("");
   const [rangeEnd, setRangeEnd] = useState("");
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("18:00");
+  const [windows, setWindows] = useState<TimeWindow[]>([{ start: "09:00", end: "18:00" }]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -51,6 +47,18 @@ export default function AvailabilityPage() {
     return () => unsub();
   }, []);
 
+  function addWindowRow() {
+    setWindows((prev) => [...prev, { start: "", end: "" }]);
+  }
+
+  function removeWindowRow(index: number) {
+    setWindows((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateWindow(index: number, field: "start" | "end", value: string) {
+    setWindows((prev) => prev.map((w, i) => (i === index ? { ...w, [field]: value } : w)));
+  }
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!rangeStart || !rangeEnd) {
@@ -61,9 +69,26 @@ export default function AvailabilityPage() {
       setError("תאריך הסיום חייב להיות אחרי תאריך ההתחלה");
       return;
     }
-    if (startTime >= endTime) {
-      setError("שעת ההתחלה חייבת להיות לפני שעת הסיום");
+    if (windows.length === 0) {
+      setError("נא להוסיף לפחות חלון שעות אחד");
       return;
+    }
+    for (const w of windows) {
+      if (!w.start || !w.end) {
+        setError("נא למלא שעת התחלה וסיום לכל חלון");
+        return;
+      }
+      if (w.start >= w.end) {
+        setError("בכל חלון, שעת ההתחלה חייבת להיות לפני שעת הסיום");
+        return;
+      }
+    }
+    const sorted = [...windows].sort((a, b) => a.start.localeCompare(b.start));
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].start < sorted[i - 1].end) {
+        setError("חלונות הזמן חופפים - נא לתקן");
+        return;
+      }
     }
 
     setError("");
@@ -72,11 +97,12 @@ export default function AvailabilityPage() {
       const dates = dateRange(rangeStart, rangeEnd);
       await Promise.all(
         dates.map((date) =>
-          setDoc(doc(db, "doik/app/availability", date), { date, startTime, endTime })
+          setDoc(doc(db, "doik/app/availability", date), { date, windows: sorted })
         )
       );
       setRangeStart("");
       setRangeEnd("");
+      setWindows([{ start: "09:00", end: "18:00" }]);
     } catch (err) {
       console.error(err);
       setError("משהו השתבש, נסי שוב");
@@ -94,7 +120,7 @@ export default function AvailabilityPage() {
     <div className="app-shell px-6" style={{ paddingTop: "calc(96px + var(--sat))" }}>
       <h1 className="font-serif text-3xl font-bold text-white mb-2">ניהול זמינות</h1>
       <p className="text-sm text-gray-400 mb-6">
-        בחרי טווח ימים ושעת פתיחה וסגירה - זה יחול על כל הימים בטווח, ולקוחות יוכלו לקבוע תור רק בזמנים האלה.
+        בחרי טווח ימים, ותוכלי להוסיף כמה חלונות שעות שתרצי לאותם ימים - למשל בוקר וערב בנפרד.
       </p>
 
       <form onSubmit={handleAdd} className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8 space-y-4">
@@ -118,25 +144,45 @@ export default function AvailabilityPage() {
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">שעת פתיחה</label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm tabular-nums focus:outline-none focus:border-brand-rose"
-            />
+
+        <div>
+          <label className="text-xs text-gray-400 mb-2 block">חלונות שעות (אפשר להוסיף יותר מאחד)</label>
+          <div className="space-y-2">
+            {windows.map((w, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={w.start}
+                  onChange={(e) => updateWindow(i, "start", e.target.value)}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm tabular-nums focus:outline-none focus:border-brand-rose"
+                />
+                <span className="text-gray-500 text-xs">עד</span>
+                <input
+                  type="time"
+                  value={w.end}
+                  onChange={(e) => updateWindow(i, "end", e.target.value)}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm tabular-nums focus:outline-none focus:border-brand-rose"
+                />
+                {windows.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeWindowRow(i)}
+                    className="w-9 h-9 flex-shrink-0 rounded-full border border-red-500/30 text-red-300 flex items-center justify-center text-sm"
+                    aria-label="הסרת חלון"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">שעת סגירה</label>
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm tabular-nums focus:outline-none focus:border-brand-rose"
-            />
-          </div>
+          <button
+            type="button"
+            onClick={addWindowRow}
+            className="mt-2 text-brand-rose text-sm font-semibold"
+          >
+            + הוספת חלון שעות נוסף
+          </button>
         </div>
 
         {error && <p className="text-xs text-red-400">{error}</p>}
@@ -164,7 +210,7 @@ export default function AvailabilityPage() {
             <div>
               <p className="text-white text-sm font-semibold tabular-nums">{d.date}</p>
               <p className="text-xs text-gray-400 tabular-nums">
-                {d.startTime} - {d.endTime}
+                {d.windows?.map((w) => `${w.start}-${w.end}`).join(" · ")}
               </p>
             </div>
             <button
