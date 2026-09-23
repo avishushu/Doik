@@ -6,6 +6,7 @@ import { collection, query, where, orderBy, limit, getDocs } from "firebase/fire
 import { db } from "@/lib/firebase";
 import { useAuthContext } from "@/lib/auth-context";
 import { useBookingSheet } from "@/lib/booking-sheet-context";
+import { cancelBooking } from "@/lib/booking-actions";
 import { IconLock } from "@/components/icons";
 
 type Booking = {
@@ -13,6 +14,7 @@ type Booking = {
   treatment: string;
   date: string;
   time: string;
+  blockMinutes: number;
 };
 
 export default function MyBookingsPage() {
@@ -22,27 +24,62 @@ export default function MyBookingsPage() {
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function loadBookings() {
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const q = query(
+      collection(db, "doik/app/bookings"),
+      where("createdBy", "==", user.uid),
+      orderBy("date"),
+      limit(50)
+    );
+    const snap = await getDocs(q);
+    const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Booking));
+    setBookings(all.filter((b) => b.date >= today));
+    setFetching(false);
+  }
 
   useEffect(() => {
     if (!isLoggedIn) {
       setFetching(false);
       return;
     }
-    async function load() {
-      const today = new Date().toISOString().slice(0, 10);
-      const q = query(
-        collection(db, "doik/app/bookings"),
-        where("createdBy", "==", user!.uid),
-        orderBy("date"),
-        limit(50)
-      );
-      const snap = await getDocs(q);
-      const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Booking));
-      setBookings(all.filter((b) => b.date >= today));
-      setFetching(false);
-    }
-    load();
+    loadBookings();
   }, [isLoggedIn, user]);
+
+  async function handleCancel(b: Booking) {
+    if (!confirm(`לבטל את התור ל${b.treatment} בתאריך ${b.date}?`)) return;
+    setErrorMsg("");
+    setCancelingId(b.id);
+    try {
+      await cancelBooking(b);
+      setBookings((prev) => prev.filter((x) => x.id !== b.id));
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("לא הצלחנו לבטל את התור, נסי שוב או צרי קשר בוואטסאפ");
+    } finally {
+      setCancelingId(null);
+    }
+  }
+
+  async function handleReschedule(b: Booking) {
+    if (!confirm("שינוי התור יבטל את התור הנוכחי ויפתח קביעת תור חדשה - להמשיך?")) return;
+    setErrorMsg("");
+    setCancelingId(b.id);
+    try {
+      await cancelBooking(b);
+      setBookings((prev) => prev.filter((x) => x.id !== b.id));
+      open({ title: b.treatment, price: "", duration: "" });
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("לא הצלחנו לשנות את התור, נסי שוב או צרי קשר בוואטסאפ");
+    } finally {
+      setCancelingId(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -89,13 +126,31 @@ export default function MyBookingsPage() {
         <p className="text-gray-400 text-sm mb-6">אין לך תורים קרובים כרגע.</p>
       )}
 
+      {errorMsg && <p className="text-xs text-red-400 mb-4">{errorMsg}</p>}
+
       <div className="space-y-3 mb-6">
         {bookings.map((b) => (
           <div key={b.id} className="bg-white/5 border border-white/10 rounded-2xl p-4">
             <h3 className="font-bold text-white mb-1">{b.treatment}</h3>
-            <p className="text-sm text-brand-rose font-semibold tabular-nums">
+            <p className="text-sm text-brand-rose font-semibold tabular-nums mb-3">
               {b.date} · {b.time}
             </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleReschedule(b)}
+                disabled={cancelingId === b.id}
+                className="flex-1 border border-white/15 text-white rounded-full py-2 text-xs font-semibold hover:bg-white/5 transition-colors disabled:opacity-50"
+              >
+                שינוי תור
+              </button>
+              <button
+                onClick={() => handleCancel(b)}
+                disabled={cancelingId === b.id}
+                className="flex-1 border border-red-500/30 text-red-300 rounded-full py-2 text-xs font-semibold hover:bg-red-950/30 transition-colors disabled:opacity-50"
+              >
+                {cancelingId === b.id ? "מבטלת..." : "ביטול תור"}
+              </button>
+            </div>
           </div>
         ))}
       </div>

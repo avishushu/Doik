@@ -182,7 +182,7 @@ export default function BookingSheet() {
           throw new Error("SLOT_TAKEN");
         }
         cells.forEach((c, i) => {
-          tx.set(cellRefs[i], { date: selectedDate, time: c, createdAt: serverTimestamp() });
+          tx.set(cellRefs[i], { date: selectedDate, time: c, createdAt: serverTimestamp(), createdBy: uid });
         });
         tx.set(bookingRef, {
           treatment: selectedTreatment.title,
@@ -192,6 +192,7 @@ export default function BookingSheet() {
           phone: finalPhone,
           createdAt: serverTimestamp(),
           purgeAfter: Timestamp.fromDate(purgeDate),
+          blockMinutes: totalMinutes,
           createdBy: uid,
         });
       });
