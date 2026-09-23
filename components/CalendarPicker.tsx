@@ -109,13 +109,13 @@ export default function CalendarPicker({
               type="button"
               disabled={!isAvailable}
               onClick={() => onSelect(dateStr)}
-              className={`aspect-square rounded-full text-sm font-semibold flex items-center justify-center tabular-nums transition-colors ${
+              className={`aspect-square rounded-full text-sm font-bold flex items-center justify-center tabular-nums transition-colors ${
                 isSelected
-                  ? "bg-brand-rose text-white"
+                  ? "bg-white text-brand-dark"
                   : isAvailable
-                  ? "bg-white/5 text-white border border-white/10 hover:bg-brand-rose/20"
+                  ? "bg-brand-rose/20 text-white border border-brand-rose/60 hover:bg-brand-rose/35"
                   : "text-gray-600 cursor-not-allowed"
-              } ${isToday && !isSelected ? "ring-1 ring-brand-rose/50" : ""}`}
+              } ${isToday && !isSelected ? "ring-1 ring-white/40" : ""}`}
             >
               {date.getDate()}
             </button>
@@ -125,11 +125,11 @@ export default function CalendarPicker({
 
       <div className="flex items-center gap-4 mt-5 text-xs text-gray-500">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-white/5 border border-white/10 inline-block" />
+          <span className="w-3 h-3 rounded-full bg-brand-rose/20 border border-brand-rose/60 inline-block" />
           פנוי
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-brand-rose inline-block" />
+          <span className="w-3 h-3 rounded-full bg-white inline-block" />
           נבחר
         </div>
       </div>
