@@ -25,19 +25,10 @@ import {
   groupSlotsByPeriod,
 } from "@/lib/availability-engine";
 import { IconUser, IconHeart } from "@/components/icons";
+import CalendarPicker from "@/components/CalendarPicker";
 
 const DRAG_CLOSE_THRESHOLD = 110;
 const SCROLL_TOP_SAFETY_MARGIN = 8;
-
-const weekdayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
-function formatDayLabel(dateStr: string, index: number) {
-  if (index === 0) return "היום";
-  const d = new Date(dateStr);
-  const day = d.getDate();
-  const month = d.getMonth() + 1;
-  return `${weekdayNames[d.getDay()]} ${day}/${month}`;
-}
 
 export default function BookingSheet() {
   const { isOpen, service, close } = useBookingSheet();
@@ -128,7 +119,6 @@ export default function BookingSheet() {
       setPhone("");
       return;
     }
-    // אם הגיעו מכרטיס שירות ספציפי, ננסה למצוא טיפול תואם לפי שם ולדלג על צעד הבחירה
     if (service && treatments.length > 0 && !treatmentId) {
       const match = treatments.find((t) => t.title === service.title);
       if (match) {
@@ -342,44 +332,28 @@ export default function BookingSheet() {
 
               {step === 1 && (
                 <div className="py-2">
-                  <button
-                    type="button"
-                    onClick={() => setStep(0)}
-                    className="text-sm text-gray-400 mb-3"
-                  >
+                  <button type="button" onClick={() => setStep(0)} className="text-sm text-gray-400 mb-3">
                     ← שינוי טיפול
                   </button>
                   <h3 className="text-2xl font-serif font-bold text-white mb-1">מתי נוח לך?</h3>
                   <p className="text-sm text-gray-400 mb-5">{selectedTreatment?.title}</p>
 
-                  {daysLoading && <p className="text-gray-400 text-sm">טוענת ימים פנויים...</p>}
+                  {daysLoading && <p className="text-gray-400 text-sm mb-4">טוענת ימים פנויים...</p>}
                   {!daysLoading && availableDays.length === 0 && (
-                    <p className="text-gray-400 text-sm">אין כרגע ימים פתוחים לקביעת תורים.</p>
+                    <p className="text-gray-400 text-sm mb-4">אין כרגע ימים פתוחים לקביעת תורים.</p>
                   )}
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {availableDays.map((d, i) => (
-                      <button
-                        key={d.date}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDate(d.date);
-                          setSelectedTime(null);
-                          setStep(2);
-                        }}
-                        className={`rounded-xl py-3 px-3 text-sm font-semibold border transition-all text-center ${
-                          selectedDate === d.date
-                            ? "border-brand-rose bg-brand-rose/30 text-white"
-                            : "border-white/10 bg-white/5 text-gray-200 hover:bg-brand-rose/10"
-                        }`}
-                      >
-                        {formatDayLabel(d.date, i)}
-                      </button>
-                    ))}
-                  </div>
+                  <CalendarPicker
+                    availableDays={availableDays}
+                    selectedDate={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setSelectedTime(null);
+                      setStep(2);
+                    }}
+                  />
                 </div>
               )}
-
               {step === 2 && (
                 <div className="py-2">
                   <button type="button" onClick={() => setStep(1)} className="text-sm text-gray-400 mb-3">
