@@ -5,11 +5,19 @@ import Link from "next/link";
 import { useBookingSheet } from "@/lib/booking-sheet-context";
 import { useAuthContext } from "@/lib/auth-context";
 
-const baseNavItems = [
+const customerNavItems = [
   { href: "/", label: "בית" },
   { href: "/services", label: "כל הטיפולים" },
   { href: "/gallery", label: "גלריה" },
   { href: "/about", label: "אודות" },
+  { href: "/account", label: "החשבון שלי" },
+];
+
+const adminNavItems = [
+  { href: "/admin", label: "לוח בקרה" },
+  { href: "/admin/treatments", label: "טיפולים" },
+  { href: "/admin/availability", label: "זמינות" },
+  { href: "/admin/settings", label: "הגדרות" },
   { href: "/account", label: "החשבון שלי" },
 ];
 
@@ -18,11 +26,9 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { open } = useBookingSheet();
   const { userData } = useAuthContext();
+  const isAdmin = userData?.role === "admin";
 
-  const navItems =
-    userData?.role === "admin"
-      ? [...baseNavItems, { href: "/admin", label: "ניהול" }]
-      : baseNavItems;
+  const navItems = isAdmin ? adminNavItems : customerNavItems;
 
   useEffect(() => {
     const sentinel = document.getElementById("scroll-sentinel");
@@ -97,15 +103,17 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              open();
-            }}
-            className="mt-4 bg-gradient-to-r from-brand-rose to-pink-700 text-white px-8 py-3 rounded-full text-lg font-bold"
-          >
-            קביעת תור
-          </button>
+          {!isAdmin && (
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                open();
+              }}
+              className="mt-4 bg-gradient-to-r from-brand-rose to-pink-700 text-white px-8 py-3 rounded-full text-lg font-bold"
+            >
+              קביעת תור
+            </button>
+          )}
         </div>
       )}
     </>

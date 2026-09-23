@@ -1,9 +1,23 @@
+"use client";
+
+import Link from "next/link";
 import ParallaxHero from "@/components/ParallaxHero";
 import ServiceCarousel from "@/components/ServiceCarousel";
 import GalleryPreview from "@/components/GalleryPreview";
 import Footer from "@/components/Footer";
+import { useRedirectAdminHome } from "@/lib/use-admin-redirect";
 
 export default function HomePage() {
+  const isAdmin = useRedirectAdminHome();
+
+  if (isAdmin) {
+    return (
+      <div className="app-shell px-6" style={{ paddingTop: "calc(96px + var(--sat))" }}>
+        <p className="text-gray-400 text-sm">מעבירה ללוח הבקרה...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell relative">
       <ParallaxHero />
@@ -31,8 +45,8 @@ export default function HomePage() {
 
         <div className="flex justify-between items-end mb-6">
           <div>
-            <h2 className="text-2xl font-serif font-bold text-white">השירותים שלנו</h2>
-            <p className="text-xs text-gray-400">החליקי לצפייה במגוון הטיפולים</p>
+            <h2 className="text-2xl font-serif font-bold text-white">הטיפולים המבוקשים</h2>
+            <p className="text-xs text-gray-400">אלו שהלקוחות שלנו הכי אוהבות</p>
           </div>
         </div>
 
