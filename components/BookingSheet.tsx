@@ -28,7 +28,6 @@ import { IconUser, IconHeart } from "@/components/icons";
 import CalendarPicker from "@/components/CalendarPicker";
 
 const DRAG_CLOSE_THRESHOLD = 110;
-const SCROLL_TOP_SAFETY_MARGIN = 8;
 
 export default function BookingSheet() {
   const { isOpen, service, close } = useBookingSheet();
@@ -54,7 +53,7 @@ export default function BookingSheet() {
   const [showSavePrompt, setShowSavePrompt] = useState(false);
 
   const sheetRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const dragZoneRef = useRef<HTMLDivElement>(null);
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
   const draggingRef = useRef(false);
@@ -63,28 +62,23 @@ export default function BookingSheet() {
   const selectedTreatment = treatments.find((t) => t.id === treatmentId) || null;
   const selectedDay = availableDays.find((d) => d.date === selectedDate) || null;
 
+  // הגרירה-לסגירה מוגבלת רק לאיזור הכותרת (ידית + נקודות התקדמות) -
+  // לא לתוכן עצמו, כדי שגרירה על לוח השנה/רשימות לא תסגור בטעות
   useEffect(() => {
-    const sheet = sheetRef.current;
-    if (!sheet) return;
+    const zone = dragZoneRef.current;
+    if (!zone) return;
 
     function onTouchStart(e: TouchEvent) {
       startYRef.current = e.touches[0].clientY;
-      draggingRef.current = false;
+      draggingRef.current = true;
+      setDragging(true);
     }
     function onTouchMove(e: TouchEvent) {
-      const content = contentRef.current;
-      const atTop = !content || content.scrollTop <= SCROLL_TOP_SAFETY_MARGIN;
+      if (!draggingRef.current) return;
       const deltaY = e.touches[0].clientY - startYRef.current;
-      if (!draggingRef.current) {
-        if (atTop && deltaY > 6) {
-          draggingRef.current = true;
-          setDragging(true);
-        } else {
-          return;
-        }
-      }
+      if (deltaY < 0) return;
       e.preventDefault();
-      setDragY(Math.max(0, deltaY));
+      setDragY(deltaY);
     }
     function onTouchEnd() {
       if (draggingRef.current) {
@@ -96,13 +90,13 @@ export default function BookingSheet() {
         draggingRef.current = false;
       }
     }
-    sheet.addEventListener("touchstart", onTouchStart, { passive: true });
-    sheet.addEventListener("touchmove", onTouchMove, { passive: false });
-    sheet.addEventListener("touchend", onTouchEnd);
+    zone.addEventListener("touchstart", onTouchStart, { passive: true });
+    zone.addEventListener("touchmove", onTouchMove, { passive: false });
+    zone.addEventListener("touchend", onTouchEnd);
     return () => {
-      sheet.removeEventListener("touchstart", onTouchStart);
-      sheet.removeEventListener("touchmove", onTouchMove);
-      sheet.removeEventListener("touchend", onTouchEnd);
+      zone.removeEventListener("touchstart", onTouchStart);
+      zone.removeEventListener("touchmove", onTouchMove);
+      zone.removeEventListener("touchend", onTouchEnd);
     };
   }, [close]);
 
@@ -254,12 +248,22 @@ export default function BookingSheet() {
     >
       <div
         ref={sheetRef}
-        className={`absolute bottom-0 inset-x-0 max-w-md mx-auto bg-[#121212] border-t border-white/10 rounded-t-[2.5rem] ${
+        className={`absolute bottom-0 inset-x-0 max-w-md mx-auto bg-[#121212] border-t border-white/10 rounded-t-[2.5rem] h-[85vh] max-h-[85vh] flex flex-col ${
           dragging ? "" : "transition-transform duration-[400ms]"
         }`}
-        style={{ transform: sheetTransform, paddingBottom: "calc(20px + var(--sab))" }}
+        style={{ transform: sheetTransform, paddingBottom: "var(--sab)" }}
       >
-        <div className="pt-4 pb-2 px-6">
+        <div ref={dragZoneRef} className="relative pt-4 pb-3 px-6 flex-shrink-0">
+          <button
+            type="button"
+            onClick={close}
+            aria-label="סגירה"
+            className="absolute left-4 top-3 w-7 h-7 rounded-full bg-white/5 text-gray-500 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
           <div className="w-12 h-1.5 bg-gray-600/60 rounded-full mx-auto mb-4" />
           {!showSavePrompt && status !== "success" && (
             <div className="flex gap-1.5 justify-center">
@@ -275,7 +279,7 @@ export default function BookingSheet() {
           )}
         </div>
 
-        <div ref={contentRef} className="px-6 max-h-[70vh] overflow-y-auto">
+        <div className="px-6 flex-1 min-h-0 overflow-y-auto">
           {showSavePrompt ? (
             <div className="py-6 text-center">
               <div className="w-14 h-14 rounded-full bg-brand-rose/20 flex items-center justify-center mx-auto mb-4 text-brand-rose">
