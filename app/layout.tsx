@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Rubik, Assistant, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import BookingSheet from "@/components/BookingSheet";
 import DebugConsole from "@/components/DebugConsole";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { BookingSheetProvider } from "@/lib/booking-sheet-context";
 import { AuthProvider } from "@/lib/auth-context";
 
@@ -30,10 +31,26 @@ const body = Assistant({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#050505",
+};
+
 export const metadata: Metadata = {
   title: "Hodaya Beauty | מכון יופי יוקרתי",
-  description: "Hodaya Beauty — בניית ציפורניים וג'ל, איפור מקצועי ותסרוקות ברמה גבוהה.",
+  description: "Hodaya Beauty - בניית ציפורניים וג'ל, איפור מקצועי ותסרוקות ברמה גבוהה.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Hodaya Beauty",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -54,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </BookingSheetProvider>
         </AuthProvider>
         <DebugConsole />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
