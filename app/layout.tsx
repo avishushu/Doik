@@ -56,6 +56,28 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="he" dir="rtl" className={`${display.variable} ${latin.variable} ${body.variable}`}>
+      <head>
+        <link
+          rel="apple-touch-startup-image"
+          href="/splash/iphone-se.png"
+          media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/splash/iphone-standard.png"
+          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/splash/iphone-plus.png"
+          media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/splash/iphone-pro-max.png"
+          media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)"
+        />
+      </head>
       <body className="font-sans antialiased bg-brand-dark text-white relative overflow-x-hidden">
         <div id="scroll-sentinel" className="absolute top-10 inset-x-0 h-px pointer-events-none" />
         <div className="fixed inset-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
