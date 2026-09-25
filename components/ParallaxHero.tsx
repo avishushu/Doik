@@ -29,9 +29,9 @@ export default function ParallaxHero() {
     <header className="relative h-[65vh] w-full hero-mask overflow-hidden">
       <div ref={mediaRef} className="absolute inset-0 w-full h-[140%] -top-[20%]" style={{ willChange: "transform" }}>
         <img
-          src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0"
+          src="/icons/doik_hero_250926.jpg"
           alt="הודיה ביוטי"
-          className="w-full h-full object-cover opacity-85"
+          className="w-full h-full object-cover opacity-90"
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/30 to-transparent" />
