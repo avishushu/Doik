@@ -30,10 +30,11 @@ export default function ParallaxHero() {
         <img
           src="/icons/doik_hero_250926.jpg"
           alt="הודיה ביוטי"
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
           style={{
-            maskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
+            objectPosition: "40% 25%",
+            maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 80%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 80%, transparent 100%)",
           }}
         />
       </div>
