@@ -27,8 +27,10 @@ body {
   padding-inline: 1.5rem;
 }
 
+/* מיושר בדיוק לפי max-w-md של Tailwind (448px) - כדי שההדר, הסרגל התחתון,
+   וה-sheet של קביעת תור תמיד יתאימו בדיוק לתוכן הראשי, בלי פערים */
 .app-shell {
-  max-width: 480px;
+  max-width: 448px;
   margin-inline: auto;
   position: relative;
 }
