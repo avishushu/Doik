@@ -33,6 +33,9 @@ export default function ParallaxHero() {
           className="w-full h-full object-contain"
         />
       </div>
+      {/* דהייה עדינה מלמעלה - שומרת על ה-header קריא בלי להסתיר את התמונה */}
+      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-brand-dark to-transparent" />
+      {/* דהייה מלמטה - כמו קודם, לטובת הלוגו התחתון */}
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/30 to-transparent" />
       <div className="absolute bottom-16 right-6 left-6 z-10 flex flex-col items-start opacity-0 animate-hero-logo-in">
         <div dir="ltr" className="flex items-baseline gap-2 justify-end w-full">
