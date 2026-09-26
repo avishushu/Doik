@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const HEADER_CLEARANCE = "calc(96px + var(--sat))";
+const HEADER_CLEARANCE = "calc(56px + var(--sat))";
 
 export default function ParallaxHero() {
   const mediaRef = useRef<HTMLDivElement>(null);
@@ -28,10 +28,10 @@ export default function ParallaxHero() {
 
   return (
     <header className="relative h-[65vh] w-full overflow-hidden bg-black">
-      {/* רצועת שוליים קבועה - שחור אחיד, תמיד מתחת להדר, לא חלק מהתמונה */}
+      {/* רצועה קבועה - רק בגובה ה-header עצמו, שחור מלא */}
       <div className="absolute inset-x-0 top-0 bg-black z-20" style={{ height: HEADER_CLEARANCE }} />
 
-      {/* התמונה המלאה, לא נחתכת, יושבת מתחת לרצועה */}
+      {/* התמונה המלאה, לא נחתכת, מתחילה מיד אחרי הרצועה */}
       <div className="absolute inset-x-0 bottom-0" style={{ top: HEADER_CLEARANCE }}>
         <div ref={mediaRef} className="absolute inset-0 w-full h-full" style={{ willChange: "transform" }}>
           <img
@@ -42,10 +42,10 @@ export default function ParallaxHero() {
         </div>
       </div>
 
-      {/* מעבר עדין בדיוק על קו התפר בין הרצועה לתמונה */}
+      {/* השתלבות הדרגתית - מתחילה מיד בסוף הרצועה השחורה ונמשכת טווח ניכר לתוך התמונה */}
       <div
-        className="absolute inset-x-0 bg-gradient-to-b from-black to-transparent z-10"
-        style={{ top: `calc(${HEADER_CLEARANCE} - 44px)`, height: "88px" }}
+        className="absolute inset-x-0 bg-gradient-to-b from-black via-black/60 to-transparent z-10 pointer-events-none"
+        style={{ top: HEADER_CLEARANCE, height: "160px" }}
       />
 
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/20 to-transparent" />
