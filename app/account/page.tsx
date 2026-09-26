@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -14,6 +15,7 @@ import { IconUser, IconPhone, IconMail, IconLock, IconSparkle, IconHeart } from 
 
 export default function AccountPage() {
   const { user, userData } = useAuthContext();
+  const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("register");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,6 +66,8 @@ export default function AccountPage() {
         phone: phone.trim(),
         createdAt: serverTimestamp(),
       });
+      // מיד אחרי הרשמה מוצלחת - למסך הראשי (מנהלת תועבר משם אוטומטית ל-/admin)
+      router.push("/");
     } catch (err: any) {
       setError(translateError(err?.code));
     } finally {
@@ -77,6 +81,8 @@ export default function AccountPage() {
     setSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      // מיד אחרי התחברות מוצלחת - למסך הראשי (מנהלת תועבר משם אוטומטית ל-/admin)
+      router.push("/");
     } catch (err: any) {
       setError(translateError(err?.code));
     } finally {
