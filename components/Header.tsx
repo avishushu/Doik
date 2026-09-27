@@ -54,9 +54,9 @@ export default function Header() {
     <>
       <div
         className={`fixed top-0 inset-x-0 z-40 max-w-md mx-auto transition-all duration-500 ${
-          scrolled ? "p-3" : "p-6"
+          scrolled ? "px-3 pb-3" : "px-6 pb-6"
         }`}
-        style={{ paddingTop: scrolled ? "calc(12px + var(--sat))" : undefined }}
+        style={{ paddingTop: scrolled ? "calc(12px + var(--sat))" : "calc(24px + var(--sat))" }}
       >
         <div
           className={`flex justify-between items-center transition-all duration-500 ${
@@ -71,10 +71,10 @@ export default function Header() {
           </div>
           <button
             onClick={() => setMenuOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white"
+            className="w-11 h-11 flex items-center justify-center rounded-full bg-white/10 text-white"
             aria-label="פתח תפריט"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -85,11 +85,11 @@ export default function Header() {
         <div className="fixed inset-0 z-50 bg-[#0a0a0a]/98 backdrop-blur-2xl flex flex-col items-center justify-center gap-8">
           <button
             onClick={() => setMenuOpen(false)}
-            className="absolute left-6 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white"
-            style={{ top: "calc(24px + var(--sat))" }}
+            className="absolute left-4 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 text-white"
+            style={{ top: "calc(16px + var(--sat))" }}
             aria-label="סגור תפריט"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

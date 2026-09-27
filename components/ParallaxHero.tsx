@@ -2,8 +2,10 @@
 
 import { useEffect, useRef } from "react";
 
-const TOP_BAR_HEIGHT = 90;
+const TOP_BAR_HEIGHT = "calc(90px + var(--sat))";
 const FADE_HEIGHT = 50;
+const topBarStyle = { height: TOP_BAR_HEIGHT };
+const fadeStyle = { top: TOP_BAR_HEIGHT, height: FADE_HEIGHT };
 
 export default function ParallaxHero() {
   const mediaRef = useRef<HTMLDivElement>(null);
@@ -28,7 +30,7 @@ export default function ParallaxHero() {
   }, []);
 
   return (
-    <header className="relative h-[65vh] w-full overflow-hidden bg-black">
+    <header className="relative hero-height w-full overflow-hidden bg-black">
       {/* התמונה - מתחילה מיד ב-y=0, יושבת מתחת לכל שאר השכבות */}
       <div ref={mediaRef} className="absolute inset-0 w-full h-full" style={{ willChange: "transform" }}>
         <img
@@ -39,12 +41,12 @@ export default function ParallaxHero() {
       </div>
 
       {/* רצועה שחורה אטומה לגמרי - בדיוק בגובה ה-header, 0 עד 90px */}
-      <div className="absolute inset-x-0 top-0 bg-black z-20" style={{ height: TOP_BAR_HEIGHT }} />
+      <div className="absolute inset-x-0 top-0 bg-black z-20" style={topBarStyle} />
 
       {/* השתלבות הדרגתית - מ-90px עד 140px, שחור 100% יורד ל-0% */}
       <div
         className="absolute inset-x-0 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"
-        style={{ top: TOP_BAR_HEIGHT, height: FADE_HEIGHT }}
+        style={fadeStyle}
       />
 
       {/* דהייה תחתונה - נשארת בנפרד, לטובת קריאות הלוגו התחתון בלבד */}

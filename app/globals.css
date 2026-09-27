@@ -27,8 +27,6 @@ body {
   padding-inline: 1.5rem;
 }
 
-/* מיושר בדיוק לפי max-w-md של Tailwind (448px) - כדי שההדר, הסרגל התחתון,
-   וה-sheet של קביעת תור תמיד יתאימו בדיוק לתוכן הראשי, בלי פערים */
 .app-shell {
   max-width: 448px;
   margin-inline: auto;
@@ -41,4 +39,17 @@ body {
 .hero-mask {
   mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+}
+
+/* dvh עם נפילה חזרה ל-vh לדפדפנים ישנים - הגובה האמיתי הנראה, לא הפוטנציאלי */
+.hero-height {
+  height: 65vh;
+  height: 65dvh;
+}
+
+.sheet-max-height {
+  height: 85vh;
+  height: 85dvh;
+  max-height: 85vh;
+  max-height: 85dvh;
 }
