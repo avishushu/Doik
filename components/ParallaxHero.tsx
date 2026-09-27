@@ -1,65 +1,22 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
-const TOP_BAR_HEIGHT = "calc(90px + var(--sat))";
-const FADE_HEIGHT = 50;
-
 export default function ParallaxHero() {
-  const mediaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let ticking = false;
-    function onScroll() {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          if (mediaRef.current && scrollY < window.innerHeight) {
-            const translateY = scrollY * 0.25;
-            mediaRef.current.style.transform = `translate3d(0, ${translateY}px, 0)`;
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <header className="relative hero-height w-full overflow-hidden bg-black">
-      {/* רצועה שחורה קבועה - תמיד בגובה הזה, בלי קשר לגובה ה-Hero הכולל */}
-      <div className="absolute inset-x-0 top-0 bg-black z-20" style={{ height: TOP_BAR_HEIGHT }} />
+    <div className="w-full">
+      {/* מרווח ביטחון - בדיוק ברוחב/גובה ההדר הכולל, שחור אחיד */}
+      <div className="w-full bg-black" style={{ height: "calc(96px + var(--sat))" }} />
 
-      {/* מיכל התמונה - מתחיל פיזית רק אחרי הרצועה, לא חופף איתה אף פעם,
-          לא משנה כמה מצטמצם/מתרחב גובה ה-Hero הכולל (למשל עם/בלי שורת כתובת) */}
-      <div className="absolute inset-x-0 bottom-0" style={{ top: TOP_BAR_HEIGHT }}>
-        <div ref={mediaRef} className="absolute inset-0 w-full h-full" style={{ willChange: "transform" }}>
-          <img
-            src="/icons/doik_hero_250926.jpg"
-            alt="הודיה ביוטי"
-            className="w-full h-full object-contain"
-          />
-        </div>
+      {/* התמונה - בזרימה רגילה, גובה טבעי לפי יחס הרוחב-גובה שלה, לא תלוי במסך בכלל */}
+      <div className="relative w-full overflow-hidden">
+        <img
+          src="/icons/doik_hero_250926.jpg"
+          alt="הודיה ביוטי"
+          className="w-full h-auto block"
+        />
+        {/* השתלבות הדרגתית - בדיוק 50px ראשונים של התמונה, זזה איתה תמיד */}
+        <div className="absolute inset-x-0 top-0 h-[50px] bg-gradient-to-b from-black to-transparent pointer-events-none" />
       </div>
 
-      {/* השתלבות הדרגתית - יושבת בדיוק מעל תחילת התמונה, לא זזה איתה */}
-      <div
-        className="absolute inset-x-0 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"
-        style={{ top: TOP_BAR_HEIGHT, height: FADE_HEIGHT }}
-      />
-
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-brand-dark to-transparent" />
-
-      <div className="absolute bottom-16 right-6 left-6 z-10 flex flex-col items-start opacity-0 animate-hero-logo-in">
-        <div dir="ltr" className="flex items-baseline gap-2 justify-end w-full">
-          <span className="font-latin italic font-bold text-5xl tracking-wide text-white">Hodaya</span>
-        </div>
-        <span className="block mt-1 text-sm font-sans font-bold tracking-[0.35em] text-brand-rose uppercase">
-          Beauty
-        </span>
-      </div>
-    </header>
+      {/* רווח לפני המסכים הבאים */}
+      <div className="h-6" />
+    </div>
   );
 }
