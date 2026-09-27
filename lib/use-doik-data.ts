@@ -5,6 +5,10 @@ import { collection, doc, getDoc, onSnapshot, query, orderBy, where } from "fire
 import { db } from "./firebase";
 
 export type Treatment = {
+  image?: string;
+  featured?: boolean;
+  image?: string;
+  featured?: boolean;
   id: string;
   title: string;
   duration: number;

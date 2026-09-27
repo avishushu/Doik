@@ -2,27 +2,29 @@
 
 import { useEffect, useRef } from "react";
 import { useBookingSheet } from "@/lib/booking-sheet-context";
-import { services } from "@/lib/services-data";
+import { useTreatments } from "@/lib/use-doik-data";
 
-const featured = services.filter((s) => s.featured);
-const setLength = featured.length;
-const loopItems = [...featured, ...featured, ...featured];
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?auto=format&fit=crop&q=80&w=600";
 
 export default function ServiceCarousel() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const { open } = useBookingSheet();
+  const { treatments, loading } = useTreatments();
+
+  const featured = treatments.filter((t) => t.featured);
+  const setLength = featured.length;
+  const loopItems = setLength > 0 ? [...featured, ...featured, ...featured] : [];
 
   useEffect(() => {
     const carousel = carouselRef.current;
-    if (!carousel) return;
+    if (!carousel || setLength === 0) return;
     const cards = Array.from(carousel.querySelectorAll<HTMLDivElement>(".service-card"));
 
-    // מיקום הכרטיסייה במרחב הגלילה - לא תלוי ב-offsetParent, תמיד יחסי לקרוסלה עצמה
     function cardScrollPosition(card: HTMLDivElement): number {
       if (!carousel) return 0;
       return card.getBoundingClientRect().left - carousel.getBoundingClientRect().left + carousel.scrollLeft;
     }
-
     function findNearestIndex(): number {
       if (!carousel) return -1;
       const center = carousel.getBoundingClientRect().left + carousel.offsetWidth / 2;
@@ -39,7 +41,6 @@ export default function ServiceCarousel() {
       });
       return nearestIdx;
     }
-
     function updateScales() {
       if (!carousel) return;
       const center = carousel.getBoundingClientRect().left + carousel.offsetWidth / 2;
@@ -62,18 +63,15 @@ export default function ServiceCarousel() {
         }
       });
     }
-
     function measureSetWidth(): number {
       if (!cards[0] || !cards[setLength]) return 0;
       return cardScrollPosition(cards[setLength]) - cardScrollPosition(cards[0]);
     }
-
     function centerScrollLeftFor(index: number): number {
       const card = cards[index];
       if (!card || !carousel) return 0;
       return cardScrollPosition(card) + card.offsetWidth / 2 - carousel.clientWidth / 2;
     }
-
     function jumpTo(newLeft: number) {
       if (!carousel) return;
       carousel.style.scrollSnapType = "none";
@@ -82,30 +80,23 @@ export default function ServiceCarousel() {
         if (carousel) carousel.style.scrollSnapType = "";
       });
     }
-
     function handleLoop() {
       if (!carousel) return;
       const idx = findNearestIndex();
       if (idx === -1) return;
       const setWidth = measureSetWidth();
       if (setWidth === 0) return;
-      if (idx < setLength) {
-        jumpTo(carousel.scrollLeft + setWidth);
-      } else if (idx >= setLength * 2) {
-        jumpTo(carousel.scrollLeft - setWidth);
-      }
+      if (idx < setLength) jumpTo(carousel.scrollLeft + setWidth);
+      else if (idx >= setLength * 2) jumpTo(carousel.scrollLeft - setWidth);
     }
-
     function onScroll() {
       updateScales();
       handleLoop();
     }
-
     function initPosition(): boolean {
       if (!carousel || !cards[setLength] || cards.length === 0) return false;
       if (carousel.clientWidth === 0) return false;
-      const target = centerScrollLeftFor(setLength);
-      jumpTo(target);
+      jumpTo(centerScrollLeftFor(setLength));
       updateScales();
       return true;
     }
@@ -119,9 +110,7 @@ export default function ServiceCarousel() {
         const ok = initPosition();
         if (!ok) {
           resizeObserver = new ResizeObserver(() => {
-            if (initPosition() && resizeObserver) {
-              resizeObserver.disconnect();
-            }
+            if (initPosition() && resizeObserver) resizeObserver.disconnect();
           });
           resizeObserver.observe(carousel);
         }
@@ -134,7 +123,19 @@ export default function ServiceCarousel() {
       cancelAnimationFrame(raf);
       resizeObserver?.disconnect();
     };
-  }, []);
+  }, [setLength]);
+
+  if (loading) {
+    return <p className="text-gray-400 text-sm py-6">טוענת טיפולים...</p>;
+  }
+
+  if (featured.length === 0) {
+    return (
+      <p className="text-gray-400 text-sm py-6">
+        אין עדיין טיפולים מודגשים - סמני "להציג בקרוסלה" במסך ניהול הטיפולים.
+      </p>
+    );
+  }
 
   return (
     <div
@@ -143,25 +144,17 @@ export default function ServiceCarousel() {
       className="relative flex gap-2 overflow-x-auto no-scrollbar py-6 -mx-6 px-[20%] snap-x snap-mandatory"
       style={{ scrollBehavior: "auto" }}
     >
-      {loopItems.map((s, i) => (
+      {loopItems.map((t, i) => (
         <div
-          key={`${s.title}-${i}`}
-          onClick={() => open({ title: s.title, price: s.price, duration: s.duration })}
+          key={`${t.id}-${i}`}
+          onClick={() => open({ title: t.title, price: String(t.price), duration: String(t.duration) })}
           className="service-card snap-center relative min-w-[220px] max-w-[220px] h-[300px] rounded-[2.5rem] overflow-hidden flex-shrink-0 cursor-pointer border border-white/10 bg-neutral-900 transition-[box-shadow,border-color] duration-150"
         >
-          <img src={s.image} alt={s.title} className="absolute inset-0 w-full h-full object-cover" />
+          <img src={t.image || FALLBACK_IMAGE} alt={t.title} className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-          {s.badge && (
-            <div className="absolute top-4 right-4 bg-brand-rose/90 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-              <span className="text-xs text-white font-bold">{s.badge}</span>
-            </div>
-          )}
           <div className="absolute bottom-0 inset-x-0 p-5" dir="rtl">
-            <div className="bg-white/10 backdrop-blur-md w-10 h-10 rounded-2xl flex items-center justify-center mb-3 border border-white/10">
-              <span className="text-xl">{s.emoji}</span>
-            </div>
-            <h3 className="font-bold text-lg mb-1 text-white">{s.title}</h3>
-            <p className="text-xs text-pink-200 font-bold tabular-nums">{s.price} • {s.duration}</p>
+            <h3 className="font-bold text-lg mb-1 text-white">{t.title}</h3>
+            <p className="text-xs text-pink-200 font-bold tabular-nums">₪{t.price} • {t.duration} דק'</p>
           </div>
         </div>
       ))}
