@@ -4,8 +4,6 @@ import { useEffect, useRef } from "react";
 
 const TOP_BAR_HEIGHT = "calc(90px + var(--sat))";
 const FADE_HEIGHT = 50;
-const topBarStyle = { height: TOP_BAR_HEIGHT };
-const fadeStyle = { top: TOP_BAR_HEIGHT, height: FADE_HEIGHT };
 
 export default function ParallaxHero() {
   const mediaRef = useRef<HTMLDivElement>(null);
@@ -31,25 +29,27 @@ export default function ParallaxHero() {
 
   return (
     <header className="relative hero-height w-full overflow-hidden bg-black">
-      {/* התמונה - מתחילה מיד ב-y=0, יושבת מתחת לכל שאר השכבות */}
-      <div ref={mediaRef} className="absolute inset-0 w-full h-full" style={{ willChange: "transform" }}>
-        <img
-          src="/icons/doik_hero_250926.jpg"
-          alt="הודיה ביוטי"
-          className="w-full h-full object-contain"
-        />
+      {/* רצועה שחורה קבועה - תמיד בגובה הזה, בלי קשר לגובה ה-Hero הכולל */}
+      <div className="absolute inset-x-0 top-0 bg-black z-20" style={{ height: TOP_BAR_HEIGHT }} />
+
+      {/* מיכל התמונה - מתחיל פיזית רק אחרי הרצועה, לא חופף איתה אף פעם,
+          לא משנה כמה מצטמצם/מתרחב גובה ה-Hero הכולל (למשל עם/בלי שורת כתובת) */}
+      <div className="absolute inset-x-0 bottom-0" style={{ top: TOP_BAR_HEIGHT }}>
+        <div ref={mediaRef} className="absolute inset-0 w-full h-full" style={{ willChange: "transform" }}>
+          <img
+            src="/icons/doik_hero_250926.jpg"
+            alt="הודיה ביוטי"
+            className="w-full h-full object-contain"
+          />
+        </div>
       </div>
 
-      {/* רצועה שחורה אטומה לגמרי - בדיוק בגובה ה-header, 0 עד 90px */}
-      <div className="absolute inset-x-0 top-0 bg-black z-20" style={topBarStyle} />
-
-      {/* השתלבות הדרגתית - מ-90px עד 140px, שחור 100% יורד ל-0% */}
+      {/* השתלבות הדרגתית - יושבת בדיוק מעל תחילת התמונה, לא זזה איתה */}
       <div
         className="absolute inset-x-0 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"
-        style={fadeStyle}
+        style={{ top: TOP_BAR_HEIGHT, height: FADE_HEIGHT }}
       />
 
-      {/* דהייה תחתונה - נשארת בנפרד, לטובת קריאות הלוגו התחתון בלבד */}
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-brand-dark to-transparent" />
 
       <div className="absolute bottom-16 right-6 left-6 z-10 flex flex-col items-start opacity-0 animate-hero-logo-in">
