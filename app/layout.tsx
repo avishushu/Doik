@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Rubik, Assistant, Playfair_Display } from "next/font/google";
+import { Rubik, Playfair_Display } from "next/font/google";
+import "@fontsource-variable/assistant";
 import "./globals.css";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
@@ -24,12 +25,6 @@ const latin = Playfair_Display({
   display: "swap",
 });
 
-const body = Assistant({
-  subsets: ["hebrew", "latin"],
-  weight: ["300", "400", "600", "700"],
-  variable: "--font-body",
-  display: "swap",
-});
 
 // viewportFit: "cover" - קריטי: בלעדיו כל env(safe-area-inset-*) שכבר
 // משתמשים בו בכל האפליקציה מחזיר 0 בפועל, בלי קשר לקוד עצמו
@@ -58,7 +53,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="he" dir="rtl" className={`${display.variable} ${latin.variable} ${body.variable}`}>
+    <html lang="he" dir="rtl" className={`${display.variable} ${latin.variable}`}>
       <body className="font-sans antialiased bg-brand-dark text-white relative overflow-x-hidden">
         <div id="scroll-sentinel" className="absolute top-10 inset-x-0 h-px pointer-events-none" />
         <div className="fixed inset-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">

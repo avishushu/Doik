@@ -7,8 +7,6 @@ import { db } from "./firebase";
 export type Treatment = {
   image?: string;
   featured?: boolean;
-  image?: string;
-  featured?: boolean;
   id: string;
   title: string;
   duration: number;
