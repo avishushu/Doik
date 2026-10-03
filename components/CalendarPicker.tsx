@@ -10,7 +10,7 @@ const monthNames = [
 ];
 
 function toDateStr(d: Date) {
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function buildWeeks(year: number, month: number): (Date | null)[][] {
@@ -36,7 +36,7 @@ export default function CalendarPicker({
   onSelect: (date: string) => void;
 }) {
   const now = useMemo(() => new Date(), []);
-  const todayStr = toDateStr(now);
+  const todayStr = now.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
   const availableSet = useMemo(() => new Set(availableDays.map((d) => d.date)), [availableDays]);
 
   const [viewYear, setViewYear] = useState(now.getFullYear());

@@ -55,7 +55,7 @@ export function useAvailableDays() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
     const q = query(
       collection(db, "doik/app/availability"),
       where("date", ">=", today),

@@ -55,7 +55,7 @@ export default function AvailabilityPage() {
   const selectedDay = days.find((d) => d.date === selectedDate) || null;
 
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
     const q = query(collection(db, "doik/app/availability"), orderBy("date"));
     const unsub = onSnapshot(q, (snap) => {
       const all = snap.docs.map((d) => d.data() as AvailabilityDay);
@@ -68,7 +68,7 @@ export default function AvailabilityPage() {
   // סופר הזמנות לכל החודשים הקרובים בבת אחת, כדי שהנקודות על הלוח יופיעו מיד
   useEffect(() => {
     async function loadCounts() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
       const q = query(collection(db, "doik/app/bookings"), where("date", ">=", today));
       const snap = await getDocs(q);
       const counts = new Map<string, number>();

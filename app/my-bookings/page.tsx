@@ -29,7 +29,7 @@ export default function MyBookingsPage() {
 
   async function loadBookings() {
     if (!user) return;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
     const q = query(
       collection(db, "doik/app/bookings"),
       where("createdBy", "==", user.uid),

@@ -31,7 +31,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (userData?.role !== "admin") return;
     async function load() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
       const q = query(
         collection(db, "doik/app/bookings"),
         where("date", ">=", today),
