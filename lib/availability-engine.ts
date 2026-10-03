@@ -34,13 +34,16 @@ export function cellsForStart(start: string, totalMinutes: number): string[] {
 export function computeAvailableStarts(
   windows: TimeWindow[],
   totalMinutes: number,
-  takenCells: Set<string>
+  takenCells: Set<string>,
+  // אופציונלי: שעות התחלה לפני הדקה הזו (מחצות) נפסלות - לשימוש ביום הנוכחי כדי לא להציע שעות שכבר עברו
+  minStartMinutes: number = 0
 ): string[] {
   const results: string[] = [];
   for (const w of windows) {
     const startMin = toMinutes(w.start);
     const endMin = toMinutes(w.end);
     for (let m = startMin; m + totalMinutes <= endMin; m += CELL_MINUTES) {
+      if (m < minStartMinutes) continue;
       const start = toHHMM(m);
       const cells = cellsForStart(start, totalMinutes);
       const conflict = cells.some((c) => takenCells.has(c));
@@ -58,4 +61,19 @@ export function groupSlotsByPeriod(times: string[]) {
   });
   const evening = times.filter((t) => parseInt(t.slice(0, 2), 10) >= 17);
   return { morning, afternoon, evening };
+}
+
+// כמה תורים באורך הבלוק אפשר לשבץ בפועל ברצף (בלי חפיפה) מתוך שעות ההתחלה הפנויות -
+// מספר שעות ההתחלה לבדו מטעה כי הן חופפות וזזות ב-15 דק'
+export function countNonOverlapping(starts: string[], totalMinutes: number): number {
+  const sorted = starts.map(toMinutes).sort((a, b) => a - b);
+  let count = 0;
+  let nextFree = -1;
+  for (const m of sorted) {
+    if (m >= nextFree) {
+      count++;
+      nextFree = m + totalMinutes;
+    }
+  }
+  return count;
 }
