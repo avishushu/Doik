@@ -23,7 +23,7 @@ export default function HomePage() {
   return (
     <div className="app-shell relative">
       <ParallaxHero />
-      <div className="px-6 relative z-20">
+      <div className="px-6 -mt-10 relative z-20">
         <div className="space-y-3 mb-8">
           <NextBookingCard />
           <AvailabilityBanner />
