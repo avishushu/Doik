@@ -6,9 +6,9 @@ export default function Footer() {
         <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-brand-rose uppercase">Beauty</span>
       </div>
       <div className="text-sm text-gray-400 space-y-1 mb-4">
-        <p>רחוב הדוגמה 12, תל אביב</p>
+        <p>ירושלים</p>
         <p dir="ltr" className="text-right">053-824-5057</p>
-        <p>ראשון–חמישי 9:00–20:00</p>
+        <p>בתיאום מראש</p>
       </div>
       <p className="text-xs text-gray-600">© {new Date().getFullYear()} Hodaya Beauty</p>
     </footer>
