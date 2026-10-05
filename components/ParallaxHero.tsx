@@ -9,8 +9,6 @@ export default function ParallaxHero() {
   const mediaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // מי שביקשה פחות תנועה במערכת ההפעלה - התמונה נשארת במקום
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let ticking = false;
     function onScroll() {
