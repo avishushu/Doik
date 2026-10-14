@@ -37,7 +37,7 @@ export default function ParallaxHero() {
           <div ref={mediaRef} style={{ willChange: "transform" }}>
             <img
               src="/icons/doik_hero_250926.jpg"
-              alt="הודיה ביוטי"
+              alt="DOIK nails"
               className="w-full h-auto block"
             />
           </div>
@@ -48,10 +48,10 @@ export default function ParallaxHero() {
         {/* הלוגו - מקובע לתחתית התמונה, עם אותה אנימציית כניסה כמו קודם */}
         <div className="absolute bottom-5 right-6 left-6 z-10 flex flex-col items-start opacity-0 animate-hero-logo-in">
           <div dir="ltr" className="flex items-baseline gap-2 justify-end w-full">
-            <span className="font-latin italic font-bold text-5xl tracking-wide text-white">Hodaya</span>
+            <span className="font-latin italic font-bold text-5xl tracking-wide text-white">DOIK</span>
           </div>
           <span className="block mt-1 text-sm font-sans font-bold tracking-[0.35em] text-brand-rose uppercase">
-            Beauty
+            nails
           </span>
         </div>
       </div>

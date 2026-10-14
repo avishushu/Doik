@@ -34,8 +34,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Hodaya Beauty | מכון יופי יוקרתי",
-  description: "Hodaya Beauty - בניית ציפורניים וג'ל, איפור מקצועי ותסרוקות ברמה גבוהה.",
+  title: "DOIK nails",
+  description: "לק ג'ל מקצועי בירושלים",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Hodaya Beauty",
+    title: "DOIK nails",
   },
 };
 

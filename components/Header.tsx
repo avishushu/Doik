@@ -66,8 +66,8 @@ export default function Header() {
           }`}
         >
           <div dir="ltr" className="flex items-baseline gap-1.5">
-            <span className="font-latin italic font-bold text-xl tracking-wide text-white">Hodaya</span>
-            <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-brand-rose uppercase">Beauty</span>
+            <span className="font-latin italic font-bold text-xl tracking-wide text-white">DOIK</span>
+            <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-brand-rose uppercase">nails</span>
           </div>
           <button
             onClick={() => setMenuOpen(true)}
