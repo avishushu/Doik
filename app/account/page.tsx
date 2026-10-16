@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  EmailAuthProvider,
+  linkWithCredential,
 } from "firebase/auth";
 import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -14,7 +16,7 @@ import { useAuthContext } from "@/lib/auth-context";
 import { IconUser, IconPhone, IconMail, IconLock, IconSparkle, IconHeart } from "@/components/icons";
 
 export default function AccountPage() {
-  const { user, userData } = useAuthContext();
+  const { user, userData, loading: authLoading } = useAuthContext();
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("register");
   const [email, setEmail] = useState("");
@@ -33,6 +35,10 @@ export default function AccountPage() {
 
   const isLoggedIn = user && !user.isAnonymous;
   const isAdmin = userData?.role === "admin";
+
+  useEffect(() => {
+    if (isLoggedIn && !authLoading && !userData) setEditing(true);
+  }, [isLoggedIn, authLoading, userData]);
 
   useEffect(() => {
     if (userData) {
@@ -57,19 +63,46 @@ export default function AccountPage() {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
+    if (cleanName.length < 2 || cleanName.length > 100) {
+      setError("נא למלא שם מלא (לפחות 2 תווים)");
+      return;
+    }
+    if (cleanPhone.length < 7 || cleanPhone.length > 20) {
+      setError("מספר הטלפון לא תקין (בין 7 ל-20 תווים)");
+      return;
+    }
+
     setSubmitting(true);
+    let accountCreated = false;
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const guest = auth.currentUser && auth.currentUser.isAnonymous ? auth.currentUser : null;
+      // אם כבר קבעה תור כאורחת - מחברים אליה את החשבון (אותו מזהה), כדי שהתור יופיע ב"התורים שלי"
+      const cred = guest
+        ? await linkWithCredential(guest, EmailAuthProvider.credential(email, password))
+        : await createUserWithEmailAndPassword(auth, email, password);
+      accountCreated = true;
       await setDoc(doc(db, "doik/app/users", cred.user.uid), {
         role: "customer",
-        name: name.trim(),
-        phone: phone.trim(),
+        name: cleanName,
+        phone: cleanPhone,
         createdAt: serverTimestamp(),
       });
-      // מיד אחרי הרשמה מוצלחת - למסך הראשי (מנהלת תועבר משם אוטומטית ל-/admin)
-      router.push("/");
+      // אחרי חיבור לאורחת צריך טעינה מלאה כדי שהמצב החדש ייקלט בכל האפליקציה
+      if (guest) {
+        window.location.assign("/");
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
-      setError(translateError(err?.code));
+      console.error(err);
+      if (accountCreated) {
+        setError("החשבון נוצר, אבל לא הצלחנו לשמור את הפרטים. מעבירה אותך להשלמת הפרטים...");
+        setTimeout(() => window.location.assign("/account"), 2500);
+      } else {
+        setError(translateError(err?.code));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -94,12 +127,28 @@ export default function AccountPage() {
     e.preventDefault();
     if (!user) return;
     setEditError("");
+    const cleanName = editName.trim();
+    const cleanPhone = editPhone.trim();
+    if (cleanName.length < 2 || cleanName.length > 100) {
+      setEditError("נא למלא שם מלא (לפחות 2 תווים)");
+      return;
+    }
+    if (cleanPhone.length < 7 || cleanPhone.length > 20) {
+      setEditError("מספר הטלפון לא תקין (בין 7 ל-20 תווים)");
+      return;
+    }
     setSavingEdit(true);
     try {
-      await updateDoc(doc(db, "doik/app/users", user.uid), {
-        name: editName.trim(),
-        phone: editPhone.trim(),
-      });
+      if (userData) {
+        await updateDoc(doc(db, "doik/app/users", user.uid), { name: cleanName, phone: cleanPhone });
+      } else {
+        await setDoc(doc(db, "doik/app/users", user.uid), {
+          role: "customer",
+          name: cleanName,
+          phone: cleanPhone,
+          createdAt: serverTimestamp(),
+        });
+      }
       setEditing(false);
     } catch (err) {
       console.error(err);
@@ -112,9 +161,12 @@ export default function AccountPage() {
   function translateError(code?: string) {
     switch (code) {
       case "auth/email-already-in-use":
+      case "auth/credential-already-in-use":
         return "כתובת האימייל הזו כבר רשומה - נסי להתחבר";
       case "auth/invalid-email":
         return "כתובת אימייל לא תקינה";
+      case "auth/network-request-failed":
+        return "אין חיבור לאינטרנט, נסי שוב";
       case "auth/weak-password":
         return "הסיסמה חייבת להכיל לפחות 6 תווים";
       case "auth/invalid-credential":
@@ -163,6 +215,9 @@ export default function AccountPage() {
             </>
           ) : (
             <form onSubmit={handleSaveEdit} className="space-y-4">
+              {!userData && (
+                <p className="text-xs text-pink-300">החשבון קיים, אבל חסרים פרטים. מלאי שם וטלפון כדי שנוכל לקבוע לך תור.</p>
+              )}
               <div className="relative">
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
                   <IconUser className="w-5 h-5" />
