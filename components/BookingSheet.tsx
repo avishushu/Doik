@@ -26,18 +26,33 @@ import {
 } from "@/lib/availability-engine";
 import { IconUser, IconHeart } from "@/components/icons";
 import CalendarPicker from "@/components/CalendarPicker";
+import { todayIL, nowMinutesIL } from "@/lib/date-utils";
 
 const DRAG_CLOSE_THRESHOLD = 110;
 
+function friendlyError(err: any): string {
+  const code = String(err?.code || "");
+  if (code.includes("permission-denied")) {
+    return "לא הצלחנו לשמור את התור. בדקי ששם וטלפון מלאים ותקינים ונסי שוב.";
+  }
+  if (code.includes("unavailable") || code.includes("network") || (typeof navigator !== "undefined" && !navigator.onLine)) {
+    return "אין חיבור לאינטרנט כרגע. בדקי את החיבור ונסי שוב.";
+  }
+  return "משהו השתבש, נסי שוב או צרי קשר בוואטסאפ";
+}
+
 export default function BookingSheet() {
   const { isOpen, service, close } = useBookingSheet();
-  const { user, userData } = useAuthContext();
+  const { user, userData, loading: authLoading } = useAuthContext();
   const router = useRouter();
   const isLoggedIn = !!user && !user.isAnonymous;
+  // מחוברת בלי פרופיל מלא (למשל הרשמה שנקטעה) - ממלאת את הפרטים בעצמה, במקום שהתור ייכשל בשקט
+  const hasProfile = isLoggedIn && !!userData?.name && !!userData?.phone;
+  const profileLoading = isLoggedIn && authLoading;
 
-  const { treatments, loading: treatmentsLoading } = useTreatments();
+  const { treatments, loading: treatmentsLoading, error: treatmentsError } = useTreatments();
   const { buffer } = useBufferMinutes();
-  const { days: availableDays, loading: daysLoading } = useAvailableDays();
+  const { days: availableDays, loading: daysLoading, error: daysError } = useAvailableDays();
 
   const [step, setStep] = useState(0);
   const [treatmentId, setTreatmentId] = useState<string | null>(null);
@@ -51,6 +66,9 @@ export default function BookingSheet() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [slotNotice, setSlotNotice] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragZoneRef = useRef<HTMLDivElement>(null);
@@ -111,6 +129,10 @@ export default function BookingSheet() {
       setShowSavePrompt(false);
       setName("");
       setPhone("");
+      setErrorMsg("");
+      setSlotNotice("");
+      timersRef.current.forEach((t) => clearTimeout(t));
+      timersRef.current = [];
       return;
     }
     if (service && treatments.length > 0 && !treatmentId) {
@@ -142,26 +164,39 @@ export default function BookingSheet() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate]);
+  }, [selectedDate, reloadKey]);
 
   const totalMinutes = selectedTreatment ? totalBlockMinutes(selectedTreatment.duration, buffer) : 0;
 
   const availableStarts = useMemo(() => {
     if (!selectedDay || !selectedTreatment) return [];
-    return computeAvailableStarts(selectedDay.windows, totalMinutes, takenCells);
-  }, [selectedDay, selectedTreatment, totalMinutes, takenCells]);
+    return computeAvailableStarts(
+      selectedDay.windows ?? [],
+      totalMinutes,
+      takenCells,
+      selectedDate === todayIL() ? nowMinutesIL() : 0
+    );
+  }, [selectedDay, selectedTreatment, totalMinutes, takenCells, selectedDate]);
 
   const grouped = groupSlotsByPeriod(availableStarts);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedTreatment || !selectedDate || !selectedTime) return;
+    const finalName = hasProfile ? (userData?.name || "").trim() : name.trim();
+    const finalPhone = hasProfile ? (userData?.phone || "").trim() : phone.trim();
+    if (finalName.length < 2 || finalName.length > 100) {
+      setErrorMsg("נא למלא שם מלא (לפחות 2 תווים)");
+      return;
+    }
+    if (finalPhone.length < 7 || finalPhone.length > 20) {
+      setErrorMsg("מספר הטלפון לא תקין (בין 7 ל-20 תווים)");
+      return;
+    }
+
     if (navigator.vibrate) navigator.vibrate(12);
     setErrorMsg("");
     setStatus("loading");
-
-    const finalName = isLoggedIn ? userData?.name || "" : name.trim();
-    const finalPhone = isLoggedIn ? userData?.phone || "" : phone.trim();
 
     try {
       if (!auth.currentUser) {
@@ -205,23 +240,35 @@ export default function BookingSheet() {
       });
       setStatus("success");
 
-      if (!isLoggedIn) {
-        setTimeout(() => setShowSavePrompt(true), 1200);
-      } else {
-        setTimeout(() => close(), 1500);
-      }
+      const timer = setTimeout(
+        () => {
+          if (!isLoggedIn) setShowSavePrompt(true);
+          else close();
+        },
+        isLoggedIn ? 1500 : 1200
+      );
+      timersRef.current.push(timer);
     } catch (err: any) {
       console.error(err);
       if (err?.message === "SLOT_TAKEN") {
         setStatus("error");
-        setErrorMsg("אופס, השעה הזו נתפסה ממש עכשיו - נא לבחור שעה אחרת");
+        setErrorMsg("");
+        setSlotNotice("אופס, השעה הזו נתפסה ממש עכשיו - נא לבחור שעה אחרת");
         setSelectedTime(null);
+        setReloadKey((k) => k + 1);
         setStep(2);
       } else {
         setStatus("error");
-        setErrorMsg("משהו השתבש, נסי שוב או צרי קשר בוואטסאפ");
+        setErrorMsg(friendlyError(err));
       }
     }
+  }
+
+  function pickTime(t: string) {
+    setSelectedTime(t);
+    setSlotNotice("");
+    setErrorMsg("");
+    setStep(3);
   }
 
   function goRegister() {
@@ -313,6 +360,9 @@ export default function BookingSheet() {
                   <h3 className="text-2xl font-serif font-bold text-white mb-1">איזה טיפול תרצי?</h3>
                   <p className="text-sm text-gray-400 mb-5">בחרי מהרשימה כדי להמשיך</p>
                   {treatmentsLoading && <p className="text-gray-400 text-sm">טוענת...</p>}
+                  {treatmentsError && (
+                    <p className="text-sm text-red-400 mb-3">לא הצלחנו לטעון את רשימת הטיפולים. בדקי את החיבור ורענני את העמוד.</p>
+                  )}
                   <div className="space-y-2">
                     {treatments.map((t) => (
                       <button
@@ -344,7 +394,10 @@ export default function BookingSheet() {
                   <p className="text-sm text-gray-400 mb-5">{selectedTreatment?.title}</p>
 
                   {daysLoading && <p className="text-gray-400 text-sm mb-4">טוענת ימים פנויים...</p>}
-                  {!daysLoading && availableDays.length === 0 && (
+                  {daysError && (
+                    <p className="text-sm text-red-400 mb-4">לא הצלחנו לטעון את הימים הפנויים. בדקי את החיבור ורענני את העמוד.</p>
+                  )}
+                  {!daysLoading && !daysError && availableDays.length === 0 && (
                     <p className="text-gray-400 text-sm mb-4">אין כרגע ימים פתוחים לקביעת תורים.</p>
                   )}
 
@@ -354,6 +407,7 @@ export default function BookingSheet() {
                     onSelect={(date) => {
                       setSelectedDate(date);
                       setSelectedTime(null);
+                      setSlotNotice("");
                       setStep(2);
                     }}
                   />
@@ -368,6 +422,7 @@ export default function BookingSheet() {
                   <p className="text-sm text-gray-400 mb-5">
                     {selectedDate} {checkingSlots && "· בודקת זמינות..."}
                   </p>
+                  {slotNotice && <p className="text-sm text-red-400 mb-4">{slotNotice}</p>}
 
                   {!checkingSlots && availableStarts.length === 0 && (
                     <p className="text-gray-400 text-sm mb-4">אין שעות פנויות ביום הזה לטיפול הזה - נסי תאריך אחר.</p>
@@ -381,10 +436,7 @@ export default function BookingSheet() {
                           <button
                             key={t}
                             type="button"
-                            onClick={() => {
-                              setSelectedTime(t);
-                              setStep(3);
-                            }}
+                            onClick={() => pickTime(t)}
                             className="rounded-xl py-2.5 text-sm font-semibold border border-white/10 bg-white/5 hover:bg-brand-rose/20 tabular-nums transition-colors"
                           >
                             {t}
@@ -401,10 +453,7 @@ export default function BookingSheet() {
                           <button
                             key={t}
                             type="button"
-                            onClick={() => {
-                              setSelectedTime(t);
-                              setStep(3);
-                            }}
+                            onClick={() => pickTime(t)}
                             className="rounded-xl py-2.5 text-sm font-semibold border border-white/10 bg-white/5 hover:bg-brand-rose/20 tabular-nums transition-colors"
                           >
                             {t}
@@ -421,10 +470,7 @@ export default function BookingSheet() {
                           <button
                             key={t}
                             type="button"
-                            onClick={() => {
-                              setSelectedTime(t);
-                              setStep(3);
-                            }}
+                            onClick={() => pickTime(t)}
                             className="rounded-xl py-2.5 text-sm font-semibold border border-white/10 bg-white/5 hover:bg-brand-rose/20 tabular-nums transition-colors"
                           >
                             {t}
@@ -454,7 +500,9 @@ export default function BookingSheet() {
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    {isLoggedIn ? (
+                    {profileLoading ? (
+                      <p className="text-sm text-gray-400">טוענת את הפרטים שלך...</p>
+                    ) : hasProfile ? (
                       <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-brand-rose/20 flex items-center justify-center text-brand-rose">
                           <IconUser className="w-4 h-4" />
@@ -494,7 +542,7 @@ export default function BookingSheet() {
 
                     <button
                       type="submit"
-                      disabled={status === "loading"}
+                      disabled={status === "loading" || profileLoading}
                       className="w-full rounded-2xl py-4 font-bold text-lg shadow-lg active:scale-95 transition-transform mt-2 flex items-center justify-center gap-2 text-white disabled:opacity-60 bg-gradient-to-r from-brand-rose to-pink-700"
                     >
                       {status === "loading" ? "שומר תור..." : "אישור והבטחת התור"}

@@ -30,16 +30,22 @@ export default function MyBookingsPage() {
   async function loadBookings() {
     if (!user) return;
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
-    const q = query(
-      collection(db, "doik/app/bookings"),
-      where("createdBy", "==", user.uid),
-      orderBy("date"),
-      limit(50)
-    );
-    const snap = await getDocs(q);
-    const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Booking));
-    setBookings(all.filter((b) => b.date >= today));
-    setFetching(false);
+    try {
+      const q = query(
+        collection(db, "doik/app/bookings"),
+        where("createdBy", "==", user.uid),
+        orderBy("date"),
+        limit(50)
+      );
+      const snap = await getDocs(q);
+      const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Booking));
+      setBookings(all.filter((b) => b.date >= today));
+    } catch (err) {
+      console.error("failed to load bookings", err);
+      setErrorMsg("לא הצלחנו לטעון את התורים שלך, נסי לרענן את העמוד");
+    } finally {
+      setFetching(false);
+    }
   }
 
   useEffect(() => {
@@ -122,7 +128,7 @@ export default function MyBookingsPage() {
 
       {fetching && <p className="text-gray-400 text-sm mb-6">טוען...</p>}
 
-      {!fetching && bookings.length === 0 && (
+      {!fetching && !errorMsg && bookings.length === 0 && (
         <p className="text-gray-400 text-sm mb-6">אין לך תורים קרובים כרגע.</p>
       )}
 

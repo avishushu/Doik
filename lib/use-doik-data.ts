@@ -20,18 +20,24 @@ export type AvailabilityDay = { date: string; windows: TimeWindow[] };
 export function useTreatments() {
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, "doik/app/treatments"), orderBy("title"));
     const unsub = onSnapshot(q, (snap) => {
       const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Treatment));
       setTreatments(all.filter((t) => t.active));
+      setError(false);
+      setLoading(false);
+    }, (err) => {
+      console.error("failed to load treatments", err);
+      setError(true);
       setLoading(false);
     });
     return () => unsub();
   }, []);
 
-  return { treatments, loading };
+  return { treatments, loading, error };
 }
 
 export function useBufferMinutes() {
@@ -39,12 +45,14 @@ export function useBufferMinutes() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDoc(doc(db, "doik/app/settings", "global")).then((snap) => {
-      if (snap.exists() && typeof snap.data().bufferMinutes === "number") {
-        setBuffer(snap.data().bufferMinutes);
-      }
-      setLoading(false);
-    });
+    getDoc(doc(db, "doik/app/settings", "global"))
+      .then((snap) => {
+        if (snap.exists() && typeof snap.data().bufferMinutes === "number") {
+          setBuffer(snap.data().bufferMinutes);
+        }
+      })
+      .catch((err) => console.error("failed to load buffer minutes", err))
+      .finally(() => setLoading(false));
   }, []);
 
   return { buffer, loading };
@@ -53,6 +61,7 @@ export function useBufferMinutes() {
 export function useAvailableDays() {
   const [days, setDays] = useState<AvailabilityDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
@@ -63,10 +72,15 @@ export function useAvailableDays() {
     );
     const unsub = onSnapshot(q, (snap) => {
       setDays(snap.docs.map((d) => d.data() as AvailabilityDay));
+      setError(false);
+      setLoading(false);
+    }, (err) => {
+      console.error("failed to load available days", err);
+      setError(true);
       setLoading(false);
     });
     return () => unsub();
   }, []);
 
-  return { days, loading };
+  return { days, loading, error };
 }

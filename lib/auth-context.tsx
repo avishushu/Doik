@@ -36,6 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubDoc = onSnapshot(doc(db, "doik/app/users", user.uid), (snap) => {
       setUserData(snap.exists() ? (snap.data() as DoikUserData) : null);
       setLoading(false);
+    }, (err) => {
+      console.error("failed to load user profile", err);
+      setLoading(false);
     });
     return () => unsubDoc();
   }, [user]);
